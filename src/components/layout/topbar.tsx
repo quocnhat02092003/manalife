@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { navItems, navSections } from "@/config/nav";
 import { cn } from "@/lib/utils";
 import { IconButton } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
+import { NotificationsBell } from "@/components/layout/notifications-bell";
 
 interface TopbarUser {
   name: string;
@@ -54,12 +55,7 @@ export function Topbar({ user }: { user: TopbarUser }) {
           />
         </div>
 
-        <IconButton aria-label="Thông báo" className="ml-auto lg:ml-0">
-          <span className="relative">
-            <Bell size={18} />
-            <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-clay" />
-          </span>
-        </IconButton>
+        <NotificationsBell />
 
         <Link
           href="/settings"
