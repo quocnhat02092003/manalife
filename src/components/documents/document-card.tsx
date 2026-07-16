@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarClock } from "lucide-react";
+import { CalendarDays, CalendarClock, Trash2 } from "lucide-react";
 import type { PersonalDocument } from "@/types";
 import { cn, formatFileSize } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -48,16 +48,81 @@ function TagList({ tags }: { tags: string[] }) {
   );
 }
 
+/** Nút xoá nhỏ ở góc thẻ — chỉ hiện khi component cha truyền onDelete. */
+function DeleteButton({
+  name,
+  onDelete,
+}: {
+  name: string;
+  onDelete: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onDelete}
+      aria-label={`Xoá "${name}"`}
+      className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-danger/10 hover:text-danger"
+    >
+      <Trash2 size={15} />
+    </button>
+  );
+}
+
+/**
+ * Xem trước cho ảnh và video — hai loại này trình duyệt hiển thị trực tiếp
+ * được. File lấy từ endpoint có kiểm tra quyền sở hữu, không phải URL công
+ * khai.
+ */
+function MediaPreview({ doc }: { doc: PersonalDocument }) {
+  const src = `/api/documents/${doc.id}/file`;
+
+  if (doc.kind === "image") {
+    // Ảnh riêng tư phục vụ qua API nội bộ có kiểm tra phiên — next/image
+    // không tối ưu thêm được gì ở đây.
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={doc.name}
+        loading="lazy"
+        className="mt-3 h-36 w-full rounded-lg border border-line object-cover"
+      />
+    );
+  }
+  if (doc.kind === "video") {
+    return (
+      <video
+        src={src}
+        controls
+        preload="metadata"
+        className="mt-3 h-36 w-full rounded-lg border border-line bg-ink object-contain"
+      />
+    );
+  }
+  return null;
+}
+
 /** Thẻ tài liệu ở chế độ lưới. */
-export function DocumentCard({ doc }: { doc: PersonalDocument }) {
+export function DocumentCard({
+  doc,
+  onDelete,
+}: {
+  doc: PersonalDocument;
+  onDelete?: () => void;
+}) {
   const meta = documentKindMeta[doc.kind];
 
   return (
     <Card className="flex flex-col p-4 transition-colors hover:border-line-strong">
       <div className="flex items-start justify-between gap-2">
         <IconTile icon={meta.icon} tone={meta.tone} size="md" />
-        <ExpiryChip doc={doc} />
+        <div className="flex items-center gap-1">
+          <ExpiryChip doc={doc} />
+          {onDelete ? <DeleteButton name={doc.name} onDelete={onDelete} /> : null}
+        </div>
       </div>
+
+      <MediaPreview doc={doc} />
 
       <p className="mt-3 line-clamp-2 text-[13px] leading-relaxed font-medium text-ink">
         {doc.name}
@@ -82,7 +147,13 @@ export function DocumentCard({ doc }: { doc: PersonalDocument }) {
 }
 
 /** Một dòng tài liệu ở chế độ danh sách. */
-export function DocumentRow({ doc }: { doc: PersonalDocument }) {
+export function DocumentRow({
+  doc,
+  onDelete,
+}: {
+  doc: PersonalDocument;
+  onDelete?: () => void;
+}) {
   const meta = documentKindMeta[doc.kind];
 
   return (
@@ -115,6 +186,8 @@ export function DocumentRow({ doc }: { doc: PersonalDocument }) {
       <div className="hidden shrink-0 md:block">
         <TagList tags={doc.tags} />
       </div>
+
+      {onDelete ? <DeleteButton name={doc.name} onDelete={onDelete} /> : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import {
   File,
   FileText,
   FileType,
+  Film,
   Image as ImageIcon,
   Sheet,
   type LucideIcon,
@@ -20,6 +21,7 @@ export const documentKindMeta: Record<
 > = {
   pdf: { icon: FileText, tone: "clay", label: "PDF" },
   image: { icon: ImageIcon, tone: "violet", label: "Hình ảnh" },
+  video: { icon: Film, tone: "clay", label: "Video" },
   sheet: { icon: Sheet, tone: "sage", label: "Bảng tính" },
   doc: { icon: FileType, tone: "brand", label: "Văn bản" },
   other: { icon: File, tone: "sand", label: "Khác" },
