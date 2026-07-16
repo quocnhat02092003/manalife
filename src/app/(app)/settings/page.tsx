@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LogOut, Palette, Shield, User } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
+import { prisma } from "@/lib/db";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,10 +20,30 @@ export const metadata: Metadata = { title: "Cài đặt" };
  * gọi `PATCH /api/me`, form mật khẩu gọi `POST /api/auth/change-password`
  * (xem docs/api/auth.md).
  */
+/** Tên hiển thị của từng provider OAuth. */
+const providerLabels: Record<string, string> = {
+  google: "Google",
+  github: "GitHub",
+};
+
 export default async function SettingsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const currentUser = session.user;
+
+  // Tài khoản chỉ đăng nhập qua OAuth (passwordHash = null) không có mật
+  // khẩu để đổi — thẻ Bảo mật hiển thị lời giải thích thay vì form vô nghĩa.
+  const account = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      passwordHash: true,
+      oauthAccounts: { select: { provider: true } },
+    },
+  });
+  const hasPassword = Boolean(account?.passwordHash);
+  const linkedProviders = (account?.oauthAccounts ?? [])
+    .map((a) => providerLabels[a.provider] ?? a.provider)
+    .join(", ");
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -83,33 +104,46 @@ export default async function SettingsPage() {
               <CardTitle>Bảo mật</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Mật khẩu hiện tại" htmlFor="currentPassword">
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                />
-              </Field>
-              <Field
-                label="Mật khẩu mới"
-                htmlFor="newPassword"
-                hint="Ít nhất 8 ký tự."
-              >
-                <Input
-                  id="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="••••••••"
-                />
-              </Field>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="secondary">Đổi mật khẩu</Button>
-            </div>
-          </CardContent>
+          {hasPassword ? (
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Mật khẩu hiện tại" htmlFor="currentPassword">
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                  />
+                </Field>
+                <Field
+                  label="Mật khẩu mới"
+                  htmlFor="newPassword"
+                  hint="Ít nhất 8 ký tự."
+                >
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                  />
+                </Field>
+              </div>
+              <div className="flex justify-end">
+                <Button variant="secondary">Đổi mật khẩu</Button>
+              </div>
+            </CardContent>
+          ) : (
+            <CardContent>
+              <p className="text-[13px] leading-relaxed text-ink-soft">
+                Tài khoản của bạn đăng nhập qua{" "}
+                <span className="font-medium text-ink">
+                  {linkedProviders || "nhà cung cấp bên ngoài"}
+                </span>{" "}
+                nên không dùng mật khẩu — việc bảo mật do bên đó đảm nhiệm.
+                Không có gì để đổi ở đây.
+              </p>
+            </CardContent>
+          )}
         </Card>
 
         <Card>
