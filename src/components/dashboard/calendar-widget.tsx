@@ -1,24 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { calendarEvents } from "@/lib/mock";
+import { addMonths, format, isSameDay, isSameMonth } from "date-fns";
+import { CalendarDays, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { cn, formatTime } from "@/lib/utils";
 import type { EventColor } from "@/types";
 import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/button";
 import { Dot } from "@/components/ui/badge";
+import { useMonthEvents } from "@/components/calendar/use-month-events";
 
 /** Nhãn thứ trong tuần, bắt đầu từ Thứ Hai như ảnh mẫu. */
 const WEEKDAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -32,7 +22,8 @@ const dotColors: Record<EventColor, string> = {
 };
 
 /**
- * Lịch tháng thu nhỏ + danh sách sự kiện của ngày đang chọn.
+ * Lịch tháng thu nhỏ + danh sách sự kiện của ngày đang chọn — cùng dữ liệu
+ * thật với trang /calendar (useMonthEvents, tải đúng khoảng lưới đang xem).
  * Chấm màu dưới mỗi ngày cho biết ngày đó có sự kiện gì.
  */
 export function CalendarWidget() {
@@ -40,16 +31,12 @@ export function CalendarWidget() {
   const [cursor, setCursor] = useState(today);
   const [selected, setSelected] = useState(today);
 
-  const days = useMemo(() => {
-    const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
-    const end = endOfWeek(endOfMonth(cursor), { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end });
-  }, [cursor]);
+  const { days, events, loading } = useMonthEvents(cursor);
 
   /** Gom sự kiện theo ngày để tra cứu O(1) khi vẽ lưới. */
   const eventsByDay = useMemo(() => {
     const map = new Map<string, EventColor[]>();
-    for (const event of calendarEvents) {
+    for (const event of events) {
       const key = format(new Date(event.startsAt), "yyyy-MM-dd");
       const list = map.get(key) ?? [];
       // Tối đa 3 chấm mỗi ô để không phá vỡ chiều cao lưới.
@@ -57,14 +44,14 @@ export function CalendarWidget() {
       map.set(key, list);
     }
     return map;
-  }, []);
+  }, [events]);
 
   const selectedEvents = useMemo(
     () =>
-      calendarEvents
+      events
         .filter((e) => isSameDay(new Date(e.startsAt), selected))
         .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
-    [selected],
+    [events, selected],
   );
 
   return (
@@ -72,8 +59,15 @@ export function CalendarWidget() {
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div className="flex items-center gap-2.5">
           <CalendarDays size={19} className="text-brand-600" />
-          <h2 className="text-[15px] font-semibold text-ink">
+          <h2 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
             {format(cursor, "'Tháng' M, yyyy")}
+            {loading ? (
+              <Loader2
+                size={13}
+                className="animate-spin text-ink-faint"
+                aria-label="Đang tải sự kiện"
+              />
+            ) : null}
           </h2>
         </div>
         <div className="flex gap-0.5">
@@ -159,7 +153,7 @@ export function CalendarWidget() {
           </ul>
         ) : (
           <p className="py-1 text-[13px] text-ink-faint">
-            Không có sự kiện nào trong ngày này.
+            {loading ? "Đang tải sự kiện…" : "Không có sự kiện nào trong ngày này."}
           </p>
         )}
       </div>
