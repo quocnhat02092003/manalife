@@ -1,6 +1,6 @@
 import { format, isPast, isToday, isTomorrow, isYesterday, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project, Task, TaskPriority } from "@/types";
 import { Badge } from "@/components/ui/badge";
@@ -35,14 +35,22 @@ interface TaskRowProps {
   task: Task;
   project: Project | undefined;
   onToggle: (id: string) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function TaskRow({ task, project, onToggle }: TaskRowProps) {
+export function TaskRow({
+  task,
+  project,
+  onToggle,
+  onEdit,
+  onDelete,
+}: TaskRowProps) {
   const done = task.status === "done";
   const overdue = !done && task.dueAt !== null && isPast(parseISO(task.dueAt));
 
   return (
-    <li className="flex items-start gap-3 px-5 py-3">
+    <li className="group flex items-start gap-3 px-5 py-3">
       <span className="pt-0.5">
         <Checkbox
           checked={done}
@@ -83,6 +91,32 @@ export function TaskRow({ task, project, onToggle }: TaskRowProps) {
           ) : null}
         </div>
       </div>
+
+      {/* Sửa/xoá — hiện khi hover hoặc focus, đỡ rối mắt. */}
+      {onEdit || onDelete ? (
+        <span className="flex shrink-0 gap-0.5 pt-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          {onEdit ? (
+            <button
+              type="button"
+              aria-label={`Sửa "${task.title}"`}
+              onClick={onEdit}
+              className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:opacity-100"
+            >
+              <Pencil size={14} />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              type="button"
+              aria-label={`Xoá "${task.title}"`}
+              onClick={onDelete}
+              className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-danger/10 hover:text-danger focus-visible:opacity-100"
+            >
+              <Trash2 size={14} />
+            </button>
+          ) : null}
+        </span>
+      ) : null}
     </li>
   );
 }

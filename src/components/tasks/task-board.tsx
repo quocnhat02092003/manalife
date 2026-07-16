@@ -1,23 +1,41 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isPast, isToday, parseISO } from "date-fns";
 import {
   CircleCheck,
   CircleDashed,
   ClipboardList,
+  FolderPlus,
   ListTodo,
+  Loader2,
+  Plus,
+  Trash2,
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
-import { projects, tasks as seedTasks } from "@/lib/mock";
-import type { Task, TaskStatus } from "@/types";
+import { toast } from "sonner";
+import { notify } from "@/lib/notifications";
+import type { Project, Task, TaskStatus } from "@/types";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, Dot } from "@/components/ui/badge";
 import { IconTile } from "@/components/ui/icon-tile";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/shadcn/alert-dialog";
 import { TaskRow } from "./task-row";
+import { TaskDialog } from "./task-dialog";
+import { ProjectDialog } from "./project-dialog";
 
 type StatusFilter = "all" | TaskStatus;
 type GroupKey = "overdue" | "today" | "upcoming" | "noDue" | "done";
@@ -50,12 +68,91 @@ function groupOf(task: Task): GroupKey {
   return "upcoming";
 }
 
+/** Tải toàn bộ việc + dự án. Helper thuần — mọi setState nằm sau await. */
+async function fetchBoardData(): Promise<
+  | { ok: true; tasks: Task[]; projects: Project[] }
+  | { ok: false; message: string }
+> {
+  try {
+    const [tasksRes, projectsRes] = await Promise.all([
+      // perPage=100 đủ cho quy mô cá nhân; vượt thì tính sau.
+      fetch("/api/tasks?perPage=100"),
+      fetch("/api/projects"),
+    ]);
+    if (!tasksRes.ok || !projectsRes.ok) {
+      return { ok: false, message: "Không tải được công việc. Thử lại sau." };
+    }
+    const tasks = ((await tasksRes.json()) as { data: Task[] }).data;
+    const projects = ((await projectsRes.json()) as { data: Project[] }).data;
+    return { ok: true, tasks, projects };
+  } catch {
+    return {
+      ok: false,
+      message: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
+    };
+  }
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  try {
+    const body = (await response.json()) as { error?: { message?: string } };
+    return body.error?.message ?? "Có lỗi xảy ra. Thử lại sau.";
+  } catch {
+    return "Có lỗi xảy ra. Thử lại sau.";
+  }
+}
+
+type PendingDelete =
+  | { type: "task"; task: Task }
+  | { type: "project"; project: Project };
+
+/**
+ * Bảng công việc chạy trên dữ liệu thật: thống kê, lọc theo trạng thái/dự
+ * án, nhóm theo hạn. Toggle gọi PATCH /toggle (server tự lật — không race
+ * giữa các tab); tạo/sửa qua TaskDialog; xoá việc/dự án sau AlertDialog.
+ */
 export function TaskBoard() {
-  const [tasks, setTasks] = useState<Task[]>(seedTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [status, setStatus] = useState<StatusFilter>("all");
   const [projectId, setProjectId] = useState<string>("all");
 
-  function toggle(id: string) {
+  const [taskDialog, setTaskDialog] = useState<{
+    open: boolean;
+    task: Task | null;
+  }>({ open: false, task: null });
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchBoardData().then((result) => {
+      if (cancelled) return;
+      if (result.ok) {
+        setTasks(result.tasks);
+        setProjects(result.projects);
+      } else {
+        toast.error(result.message);
+      }
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // -------------------------------------------------------------------------
+  // Thao tác ghi
+  // -------------------------------------------------------------------------
+
+  async function handleToggle(id: string) {
+    const before = tasks;
+    // Lạc quan: lật ngay trên UI; server là nguồn sự thật cuối (toggle tự
+    // đọc trạng thái hiện tại nên không sợ ghi đè dữ liệu cũ).
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id
@@ -68,7 +165,88 @@ export function TaskBoard() {
           : task,
       ),
     );
+
+    const response = await fetch(`/api/tasks/${id}/toggle`, { method: "PATCH" });
+    if (!response.ok) {
+      setTasks(before);
+      toast.error(await readErrorMessage(response));
+      return;
+    }
+    const { data } = (await response.json()) as { data: Task };
+    setTasks((prev) => prev.map((task) => (task.id === id ? data : task)));
   }
+
+  function handleTaskSaved(task: Task, mode: "create" | "edit") {
+    setTasks((prev) =>
+      mode === "create"
+        ? [task, ...prev]
+        : prev.map((item) => (item.id === task.id ? task : item)),
+    );
+    notify({
+      title:
+        mode === "create"
+          ? `Đã thêm công việc "${task.title}"`
+          : `Đã cập nhật công việc "${task.title}"`,
+      href: "/tasks",
+    });
+  }
+
+  function handleProjectCreated(project: Project) {
+    setProjects((prev) =>
+      [...prev, project].sort((a, b) => a.name.localeCompare(b.name, "vi")),
+    );
+    notify({ title: `Đã tạo dự án "${project.name}"`, href: "/tasks" });
+  }
+
+  async function confirmPendingDelete() {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+
+    if (target.type === "task") {
+      const response = await fetch(`/api/tasks/${target.task.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        toast.error(await readErrorMessage(response));
+        return;
+      }
+      setTasks((prev) => prev.filter((task) => task.id !== target.task.id));
+      toast.success(`Đã xoá "${target.task.title}".`);
+      notify({ title: `Đã xoá công việc "${target.task.title}"`, href: "/tasks" });
+      return;
+    }
+
+    const response = await fetch(`/api/projects/${target.project.id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      toast.error(await readErrorMessage(response));
+      return;
+    }
+    const { data } = (await response.json()) as {
+      data: { unlinkedTasks: number };
+    };
+    // Việc bên trong không mất — chỉ trở về nhóm "chưa gán dự án".
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.projectId === target.project.id
+          ? { ...task, projectId: null }
+          : task,
+      ),
+    );
+    setProjects((prev) => prev.filter((p) => p.id !== target.project.id));
+    if (projectId === target.project.id) setProjectId("all");
+    toast.success(
+      data.unlinkedTasks > 0
+        ? `Đã xoá dự án "${target.project.name}" — ${data.unlinkedTasks} việc chuyển về "chưa gán dự án".`
+        : `Đã xoá dự án "${target.project.name}".`,
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Dẫn xuất hiển thị
+  // -------------------------------------------------------------------------
 
   // Thống kê luôn tính trên toàn bộ việc, không phụ thuộc bộ lọc đang chọn.
   const stats = useMemo(() => {
@@ -144,37 +322,94 @@ export function TaskBoard() {
             Mọi dự án
           </Button>
           {projects.map((project) => (
-            <Button
-              key={project.id}
-              size="sm"
-              variant={projectId === project.id ? "primary" : "secondary"}
-              aria-pressed={projectId === project.id}
-              onClick={() => setProjectId(project.id)}
-            >
-              <Dot tone={project.color} />
-              {project.name}
-            </Button>
+            <span key={project.id} className="group relative inline-flex">
+              <Button
+                size="sm"
+                variant={projectId === project.id ? "primary" : "secondary"}
+                aria-pressed={projectId === project.id}
+                onClick={() => setProjectId(project.id)}
+                className="group-hover:pr-8"
+              >
+                <Dot tone={project.color} />
+                {project.name}
+              </Button>
+              {/* Xoá dự án — hiện khi hover; việc bên trong được giữ lại. */}
+              <button
+                type="button"
+                aria-label={`Xoá dự án "${project.name}"`}
+                onClick={() =>
+                  setPendingDelete({ type: "project", project })
+                }
+                className={cn(
+                  "absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1 opacity-0 transition-opacity",
+                  "group-focus-within:opacity-100 group-hover:opacity-100",
+                  projectId === project.id
+                    ? "text-white/80 hover:text-white"
+                    : "text-ink-faint hover:text-danger",
+                )}
+              >
+                <Trash2 size={13} />
+              </button>
+            </span>
           ))}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setProjectDialogOpen(true)}
+          >
+            <FolderPlus size={15} />
+            Dự án mới
+          </Button>
+
+          <Button
+            size="sm"
+            className="ml-auto"
+            onClick={() => setTaskDialog({ open: true, task: null })}
+          >
+            <Plus size={15} />
+            Thêm công việc
+          </Button>
         </div>
       </Card>
 
-      {isEmpty ? (
+      {loading ? (
+        <Card>
+          <p className="flex items-center justify-center gap-2 py-10 text-[13px] text-ink-faint">
+            <Loader2 size={15} className="animate-spin" aria-hidden />
+            Đang tải công việc…
+          </p>
+        </Card>
+      ) : isEmpty ? (
         <Card>
           <EmptyState
             icon={ClipboardList}
-            title="Không có công việc nào"
-            description="Chưa có việc nào khớp bộ lọc hiện tại. Thử bỏ bớt điều kiện lọc xem sao."
+            title={tasks.length === 0 ? "Chưa có công việc nào" : "Không có công việc nào"}
+            description={
+              tasks.length === 0
+                ? "Thêm việc đầu tiên để bắt đầu theo dõi những gì cần làm."
+                : "Chưa có việc nào khớp bộ lọc hiện tại. Thử bỏ bớt điều kiện lọc xem sao."
+            }
             action={
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  setStatus("all");
-                  setProjectId("all");
-                }}
-              >
-                Xoá bộ lọc
-              </Button>
+              tasks.length === 0 ? (
+                <Button
+                  size="sm"
+                  onClick={() => setTaskDialog({ open: true, task: null })}
+                >
+                  <Plus size={15} />
+                  Thêm công việc
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setStatus("all");
+                    setProjectId("all");
+                  }}
+                >
+                  Xoá bộ lọc
+                </Button>
+              )
             }
           />
         </Card>
@@ -200,7 +435,9 @@ export function TaskBoard() {
                       key={task.id}
                       task={task}
                       project={projects.find((p) => p.id === task.projectId)}
-                      onToggle={toggle}
+                      onToggle={handleToggle}
+                      onEdit={() => setTaskDialog({ open: true, task })}
+                      onDelete={() => setPendingDelete({ type: "task", task })}
                     />
                   ))}
                 </ul>
@@ -209,6 +446,53 @@ export function TaskBoard() {
           })}
         </div>
       )}
+
+      <TaskDialog
+        open={taskDialog.open}
+        onOpenChange={(open) =>
+          setTaskDialog((prev) => ({ open, task: open ? prev.task : null }))
+        }
+        task={taskDialog.task}
+        projects={projects}
+        onSaved={handleTaskSaved}
+      />
+
+      <ProjectDialog
+        open={projectDialogOpen}
+        onOpenChange={setProjectDialogOpen}
+        onCreated={handleProjectCreated}
+      />
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDelete?.type === "task"
+                ? `Xoá công việc "${pendingDelete.task.title}"?`
+                : `Xoá dự án "${pendingDelete?.project.name}"?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.type === "task"
+                ? "Công việc sẽ bị xoá vĩnh viễn. Không hoàn tác được."
+                : "Việc bên trong không bị xoá — chúng chuyển về nhóm “chưa gán dự án”."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Huỷ</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPendingDelete}
+              className="bg-danger text-white hover:bg-danger/90"
+            >
+              Xoá
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
