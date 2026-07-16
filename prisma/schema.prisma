@@ -1,0 +1,419 @@
+// ============================================================================
+// Luma — Prisma schema
+// ----------------------------------------------------------------------------
+// Các model ở đây map 1-1 với kiểu TypeScript trong src/types/index.ts. Khi đổi
+// một bên, phải đổi bên còn lại.
+//
+// Dùng SQLite cho môi trường phát triển: chạy được ngay, không cần cài server.
+// Đổi sang PostgreSQL khi triển khai chỉ cần sửa `provider` bên dưới và
+// DATABASE_URL trong .env — không model nào dùng tính năng riêng của SQLite.
+//
+// SQLite không hỗ trợ kiểu enum và kiểu mảng. Vì vậy:
+//   - Enum lưu dạng String, giá trị hợp lệ ghi rõ trong comment và được kiểm
+//     tra ở tầng API bằng type TypeScript.
+//   - Mảng (tags, linkedIds) lưu dạng String JSON, parse ở tầng API.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// Prisma 7 không còn nhận `url` ở đây nữa — chuỗi kết nối nằm trong
+// prisma.config.ts, đọc từ biến môi trường DATABASE_URL.
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------------------
+// Người dùng & phiên đăng nhập
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  // Băm bằng argon2id. TUYỆT ĐỐI không lưu mật khẩu thô.
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions          Session[]
+  events            CalendarEvent[]
+  tasks             Task[]
+  projects          Project[]
+  notes             Note[]
+  goals             Goal[]
+  expenses          Expense[]
+  expenseCategories ExpenseCategory[]
+  habits            Habit[]
+  emails            EmailMessage[]
+  documents         PersonalDocument[]
+  documentFolders   DocumentFolder[]
+  captures          Capture[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  // Lưu SHA-256 của token, không lưu token thô: rò rỉ database thì kẻ tấn công
+  // vẫn không mạo danh được phiên nào.
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  email     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// Lịch
+// ---------------------------------------------------------------------------
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime
+  allDay      Boolean  @default(false)
+  location    String?
+  /// EventColor: brand | clay | violet | sage | sand
+  color       String   @default("brand")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Truy vấn chính là "sự kiện của tôi trong khoảng ngày X–Y".
+  @@index([userId, startsAt])
+}
+
+// ---------------------------------------------------------------------------
+// Công việc
+// ---------------------------------------------------------------------------
+
+model Project {
+  id     String @id @default(cuid())
+  userId String
+  name   String
+  /// EventColor
+  color  String @default("brand")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@index([userId])
+}
+
+model Task {
+  id     String  @id @default(cuid())
+  userId String
+  title  String
+  notes  String?
+  /// TaskStatus: todo | done
+  status String  @default("todo")
+  /// TaskPriority: low | medium | high
+  priority    String    @default("medium")
+  dueAt       DateTime?
+  projectId   String?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Xoá dự án thì việc vẫn còn, chỉ mất liên kết dự án.
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([userId, dueAt])
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// Ghi chú
+// ---------------------------------------------------------------------------
+
+model Note {
+  id     String  @id @default(cuid())
+  userId String
+  title  String
+  /// Nội dung Markdown.
+  body   String
+  /// Mảng JSON các tag, ví dụ: ["sách","thói quen"]
+  tags   String  @default("[]")
+  pinned Boolean @default(false)
+  /// EventColor
+  color  String  @default("brand")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Mục tiêu
+// ---------------------------------------------------------------------------
+
+model Goal {
+  id          String  @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  /// GoalStatus: active | done | paused
+  status      String  @default("active")
+  /// GoalHorizon: quarter | year | life
+  horizon     String  @default("quarter")
+  /// Với unit = "₫", giá trị lưu bằng đồng (số nguyên), không dùng Float.
+  progressCurrent Int      @default(0)
+  progressTarget  Int
+  unit            String
+  dueAt           DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones Milestone[]
+
+  @@index([userId, status])
+}
+
+model Milestone {
+  id     String    @id @default(cuid())
+  goalId String
+  title  String
+  done   Boolean   @default(false)
+  dueAt  DateTime?
+  /// Thứ tự hiển thị trong danh sách cột mốc.
+  order  Int       @default(0)
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+}
+
+// ---------------------------------------------------------------------------
+// Chi tiêu
+// ---------------------------------------------------------------------------
+
+model ExpenseCategory {
+  id     String @id @default(cuid())
+  userId String
+  name   String
+  /// EventColor
+  color  String @default("brand")
+  /// Hạn mức tháng tính bằng đồng; null nghĩa là không đặt hạn mức.
+  monthlyBudget Int?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses Expense[]
+
+  @@index([userId])
+}
+
+model Expense {
+  id     String @id @default(cuid())
+  userId String
+  /// Luôn dương, tính bằng đồng. Chiều tiền do `kind` quyết định.
+  amount Int
+  /// ExpenseKind: expense | income
+  kind   String @default("expense")
+  note   String?
+  categoryId String
+  spentAt    DateTime
+  createdAt  DateTime @default(now())
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Chặn xoá danh mục còn giao dịch — xoá sẽ làm mất ngữ cảnh của số tiền.
+  category ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId, spentAt])
+  @@index([categoryId])
+}
+
+// ---------------------------------------------------------------------------
+// Thói quen
+// ---------------------------------------------------------------------------
+
+model Habit {
+  id     String @id @default(cuid())
+  userId String
+  name   String
+  /// Tên icon trong lucide-react, ví dụ "BookOpen".
+  icon   String @default("Sprout")
+  /// EventColor
+  color  String @default("brand")
+  targetPerWeek Int      @default(7)
+  archivedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries HabitEntry[]
+
+  @@index([userId])
+}
+
+model HabitEntry {
+  id      String @id @default(cuid())
+  habitId String
+  /// Ngày dạng "YYYY-MM-DD". Dùng String thay DateTime để tránh lệch múi giờ:
+  /// "hôm nay" của người dùng mới là thứ quan trọng, không phải mốc UTC.
+  date    String
+  done    Boolean @default(true)
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  // Mỗi thói quen tối đa một entry mỗi ngày.
+  @@unique([habitId, date])
+  @@index([habitId])
+}
+
+// ---------------------------------------------------------------------------
+// Email
+// ---------------------------------------------------------------------------
+
+model EmailMessage {
+  id        String  @id @default(cuid())
+  userId    String
+  subject   String
+  fromName  String
+  fromEmail String
+  preview   String
+  body      String
+  /// MailFolder: inbox | sent | archive | trash
+  /// Lưu ý: "starred" KHÔNG phải thư mục — nó là cờ `starred` bên dưới, lọc
+  /// xuyên thư mục.
+  folder    String  @default("inbox")
+  read      Boolean @default(false)
+  starred   Boolean @default(false)
+  receivedAt DateTime
+  createdAt  DateTime @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+
+  @@index([userId, folder, receivedAt])
+  @@index([userId, starred])
+}
+
+model Attachment {
+  id      String @id @default(cuid())
+  emailId String
+  name    String
+  /// Kích thước byte.
+  size     Int
+  mimeType String
+  /// Đường dẫn tới file trong kho lưu trữ (S3/R2/đĩa cục bộ).
+  storageKey String?
+
+  email EmailMessage @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@index([emailId])
+}
+
+// ---------------------------------------------------------------------------
+// Tài liệu cá nhân
+// ---------------------------------------------------------------------------
+
+model DocumentFolder {
+  id     String @id @default(cuid())
+  userId String
+  name   String
+  /// EventColor
+  color  String @default("brand")
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents PersonalDocument[]
+
+  @@index([userId])
+}
+
+model PersonalDocument {
+  id     String @id @default(cuid())
+  userId String
+  name   String
+  /// DocumentKind: pdf | image | sheet | doc | other
+  kind   String @default("other")
+  /// Kích thước byte.
+  size     Int
+  folderId String?
+  /// Mảng JSON các tag.
+  tags     String @default("[]")
+  /// Ngày hết hạn — dùng cho hộ chiếu, bảo hiểm, hợp đồng.
+  expiresAt  DateTime?
+  storageKey String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder DocumentFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([folderId])
+  // Phục vụ truy vấn "tài liệu sắp hết hạn".
+  @@index([userId, expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Second Brain
+// ---------------------------------------------------------------------------
+
+model Capture {
+  id     String @id @default(cuid())
+  userId String
+  /// CaptureType: note | bookmark | video | podcast | email | document | image
+  type   String
+  title  String
+  excerpt String?
+  sourceUrl  String?
+  sourceName String?
+  /// Mảng JSON các tag.
+  tags    String  @default("[]")
+  starred Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Liên kết là vô hướng nhưng lưu có hướng: mỗi cạnh sinh ra 2 dòng (A→B và
+  // B→A) để truy vấn "mọi liên kết của node X" chỉ cần quét một cột.
+  linksFrom CaptureLink[] @relation("CaptureLinkFrom")
+  linksTo   CaptureLink[] @relation("CaptureLinkTo")
+
+  @@index([userId, type])
+  @@index([userId, createdAt])
+}
+
+model CaptureLink {
+  id     String @id @default(cuid())
+  fromId String
+  toId   String
+  createdAt DateTime @default(now())
+
+  from Capture @relation("CaptureLinkFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   Capture @relation("CaptureLinkTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId])
+  @@index([fromId])
+  @@index([toId])
+}
