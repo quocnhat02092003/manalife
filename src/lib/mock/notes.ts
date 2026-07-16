@@ -1,0 +1,66 @@
+import type { Note } from "@/types";
+import { at } from "./dates";
+
+/** Ba ghi chú đầu khớp với thẻ "Ghi chú nhanh" trong ảnh mẫu. */
+export const notes: Note[] = [
+  {
+    id: "not_01",
+    title: 'Ý tưởng nội dung: Series "Productive Week" cho blog',
+    body: "Mỗi thứ Hai đăng một bài ngắn về cách sắp xếp tuần làm việc.\n\n- Tuần 1: chọn 3 việc quan trọng nhất\n- Tuần 2: time-boxing\n- Tuần 3: review cuối tuần",
+    tags: ["nội dung", "blog"],
+    pinned: true,
+    color: "violet",
+    createdAt: at(0, 10, 15),
+    updatedAt: at(0, 10, 15),
+  },
+  {
+    id: "not_02",
+    title: "Đọc lại Atomic Habits — Chương 3",
+    body: "Ba lớp thay đổi hành vi: kết quả → quy trình → bản dạng.\nThay đổi bền vững bắt đầu từ câu hỏi *mình muốn trở thành ai*, không phải *mình muốn đạt được gì*.",
+    tags: ["sách", "thói quen"],
+    pinned: false,
+    color: "brand",
+    createdAt: at(-1, 21, 40),
+    updatedAt: at(-1, 21, 40),
+  },
+  {
+    id: "not_03",
+    title: "Công thức nấu ăn healthy cho tuần mới",
+    body: "Ức gà áp chảo + quinoa + bông cải xanh.\nSốt: dầu ô liu, chanh, tỏi băm, chút mật ong.",
+    tags: ["sức khoẻ", "nấu ăn"],
+    pinned: false,
+    color: "clay",
+    createdAt: at(-1, 19, 5),
+    updatedAt: at(-1, 19, 5),
+  },
+  {
+    id: "not_04",
+    title: "Câu hỏi phỏng vấn người dùng",
+    body: "1. Bạn đang giải quyết việc này thế nào?\n2. Lần gần nhất bạn gặp khó khăn là khi nào?\n3. Nếu có cây đũa thần, bạn muốn điều gì xảy ra?",
+    tags: ["nghiên cứu", "side project"],
+    pinned: true,
+    color: "sage",
+    createdAt: at(-2, 14, 30),
+    updatedAt: at(-2, 15, 0),
+  },
+  {
+    id: "not_05",
+    title: "Danh sách mua sắm cuối tuần",
+    body: "- Cà phê hạt\n- Sữa hạnh nhân\n- Rau củ cho 3 ngày\n- Giấy in",
+    tags: ["cá nhân"],
+    pinned: false,
+    color: "sand",
+    createdAt: at(-3, 8, 20),
+    updatedAt: at(-3, 8, 20),
+  },
+  {
+    id: "not_06",
+    title: "Cấu trúc bài thuyết trình hiệu quả",
+    body: "Mở bằng một câu hỏi khiến khán giả tự thấy mình trong đó.\nThân bài tối đa 3 ý.\nKết bằng một hành động cụ thể.",
+    tags: ["kỹ năng", "thuyết trình"],
+    pinned: false,
+    color: "violet",
+    createdAt: at(-5, 11, 0),
+    updatedAt: at(-5, 11, 0),
+  },
+];

@@ -1,0 +1,100 @@
+import type { CalendarEvent } from "@/types";
+import { at } from "./dates";
+
+/**
+ * Ba sự kiện hôm nay khớp với ảnh mẫu (9:00 Viết kế hoạch Q2, 14:00 Họp đội
+ * ngũ, 19:30 Đọc sách), cộng thêm sự kiện rải quanh tháng để lưới lịch có
+ * chấm màu ở nhiều ngày.
+ */
+export const calendarEvents: CalendarEvent[] = [
+  {
+    id: "evt_01",
+    title: "Viết kế hoạch Q2",
+    description: "Phác thảo mục tiêu và ngân sách cho quý tới.",
+    startsAt: at(0, 9, 0),
+    endsAt: at(0, 10, 30),
+    allDay: false,
+    location: "Bàn làm việc",
+    color: "brand",
+  },
+  {
+    id: "evt_02",
+    title: "Họp đội ngũ",
+    description: "Điểm lại tiến độ sprint và chốt việc tuần sau.",
+    startsAt: at(0, 14, 0),
+    endsAt: at(0, 15, 0),
+    allDay: false,
+    location: "Google Meet",
+    color: "clay",
+  },
+  {
+    id: "evt_03",
+    title: "Đọc sách",
+    description: "Atomic Habits — chương 3.",
+    startsAt: at(0, 19, 30),
+    endsAt: at(0, 20, 30),
+    allDay: false,
+    location: null,
+    color: "violet",
+  },
+  {
+    id: "evt_04",
+    title: "Khám sức khoẻ định kỳ",
+    description: null,
+    startsAt: at(7, 8, 0),
+    endsAt: at(7, 9, 30),
+    allDay: false,
+    location: "Phòng khám Hoà Hảo",
+    color: "clay",
+  },
+  {
+    id: "evt_05",
+    title: "Workshop nội bộ: Deep Work",
+    description: "Chuẩn bị slide trước một ngày.",
+    startsAt: at(9, 15, 0),
+    endsAt: at(9, 17, 0),
+    allDay: false,
+    location: "Phòng họp lớn",
+    color: "violet",
+  },
+  {
+    id: "evt_06",
+    title: "Sinh nhật mẹ",
+    description: "Đặt hoa từ hôm trước.",
+    startsAt: at(12, 0, 0),
+    endsAt: at(12, 23, 59),
+    allDay: true,
+    location: null,
+    color: "sand",
+  },
+  {
+    id: "evt_07",
+    title: "Chạy bộ cùng nhóm",
+    description: null,
+    startsAt: at(3, 6, 0),
+    endsAt: at(3, 7, 0),
+    allDay: false,
+    location: "Công viên Thống Nhất",
+    color: "sage",
+  },
+  {
+    id: "evt_08",
+    title: "Review ngân sách tháng",
+    description: "Đối chiếu chi tiêu thực tế với hạn mức.",
+    startsAt: at(-4, 20, 0),
+    endsAt: at(-4, 21, 0),
+    allDay: false,
+    location: null,
+    color: "brand",
+  },
+  {
+    id: "evt_09",
+    title: "Cà phê với Linh",
+    description: "Bàn về side project.",
+    startsAt: at(-2, 16, 30),
+    endsAt: at(-2, 18, 0),
+    allDay: false,
+    location: "The Coffee House",
+    color: "sand",
+  },
+];
