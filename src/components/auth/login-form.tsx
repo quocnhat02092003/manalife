@@ -7,6 +7,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { validateLogin, type FieldErrors } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 /**
  * Form đăng nhập.
@@ -15,7 +16,7 @@ import { Field, Input } from "@/components/ui/input";
  * `POST /api/auth/login` (xem docs/api/auth.md), đọc lỗi từ `error.fields`
  * để đổ vào `errors`, và bỏ hẳn phần điều hướng lạc quan ở dưới.
  */
-export function LoginForm() {
+export function LoginForm({ oauthError }: { oauthError?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,6 +41,15 @@ export function LoginForm() {
       <p className="mt-1.5 text-sm text-ink-soft">
         Đăng nhập để tiếp tục với không gian của bạn.
       </p>
+
+      {oauthError ? (
+        <p
+          role="alert"
+          className="mt-4 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2.5 text-[13px] text-danger"
+        >
+          {oauthError}
+        </p>
+      ) : null}
 
       <div className="mt-8 space-y-4">
         <Field label="Email" htmlFor="email" error={errors.email}>
@@ -104,6 +114,10 @@ export function LoginForm() {
           "Đăng nhập"
         )}
       </Button>
+
+      <div className="mt-6">
+        <OAuthButtons />
+      </div>
 
       <p className="mt-6 text-center text-[13px] text-ink-soft">
         Chưa có tài khoản?{" "}

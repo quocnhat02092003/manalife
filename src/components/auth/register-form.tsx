@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 const strengthLabels = ["Rất yếu", "Yếu", "Trung bình", "Khá", "Mạnh"];
 
@@ -158,6 +159,10 @@ export function RegisterForm() {
           "Tạo tài khoản"
         )}
       </Button>
+
+      <div className="mt-6">
+        <OAuthButtons />
+      </div>
 
       <p className="mt-6 text-center text-[13px] text-ink-soft">
         Đã có tài khoản?{" "}
