@@ -42,6 +42,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# kho lưu trữ file upload (dev) — byte của file không thuộc về git
+/storage
+
 # prisma — database cục bộ, không commit
 prisma/dev.db
 prisma/dev.db-journal

@@ -1,6 +1,9 @@
 # Tài liệu API
 
-> **Trạng thái: chưa hiện thực.** Xem [README.md](README.md) cho quy ước chung.
+> **Trạng thái: ĐÃ HIỆN THỰC** — route handler trong `src/app/api/documents*`,
+> helpers trong `src/lib/api/documents.ts`, kho lưu trữ dev trên đĩa cục bộ
+> trong `src/lib/storage.ts` (thư mục `storage/`, đã gitignore). Xem
+> [README.md](README.md) cho quy ước chung.
 
 Module này quản lý giấy tờ cá nhân: hộ chiếu, hợp đồng, bảo hiểm, sao kê — kèm
 ngày hết hạn và cảnh báo trước khi hết hạn. Map tới model `PersonalDocument` và
@@ -24,6 +27,7 @@ Các ví dụ bên dưới lấy từ `src/lib/mock/documents.ts`, neo vào ngà
 | POST | `/api/document-folders` | Tạo thư mục. |
 | PATCH | `/api/document-folders/:id` | Đổi tên hoặc màu thư mục. |
 | DELETE | `/api/document-folders/:id` | Xoá thư mục. **Tài liệu bên trong vẫn còn.** |
+| GET | `/api/documents/:id/file` | Tải nội dung file, có kiểm tra quyền sở hữu. |
 
 **Thứ tự route quan trọng:** `/api/documents/expiring` phải không bị
 `/api/documents/[id]` nuốt mất. Trong App Router của Next.js, segment tĩnh luôn
@@ -92,7 +96,7 @@ Danh sách tài liệu của người dùng đang đăng nhập.
 | Tham số | Kiểu | Bắt buộc | Mặc định | Mô tả |
 |---|---|---|---|---|
 | `folderId` | chuỗi | không | — | Lọc theo thư mục. `folderId=none` lấy tài liệu chưa xếp thư mục (`folderId IS NULL`). |
-| `kind` | chuỗi | không | — | `pdf` \| `image` \| `sheet` \| `doc` \| `other`. |
+| `kind` | chuỗi | không | — | `pdf` \| `image` \| `video` \| `sheet` \| `doc` \| `other`. |
 | `tag` | chuỗi | không | — | Khớp **chính xác** một tag, không phải khớp một phần. |
 | `q` | chuỗi | không | — | Tìm trong `name`. |
 | `sort` | chuỗi | không | `-createdAt` | Cho phép: `createdAt`, `name`, `size`, `expiresAt`. Thêm `-` để giảm dần. |
@@ -348,6 +352,7 @@ khác từ chối. Danh sách đen luôn thiếu một thứ gì đó.
 |---|---|
 | `pdf` | `application/pdf` |
 | `image` | `image/jpeg`, `image/png`, `image/webp`, `image/heic` |
+| `video` | `video/mp4`, `video/webm`, `video/quicktime` |
 | `sheet` | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (`.xlsx`), `application/vnd.ms-excel`, `text/csv` |
 | `doc` | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (`.docx`), `application/msword`, `text/plain`, `text/markdown` |
 | `other` | Mọi MIME khác **trong danh sách trắng** |
@@ -389,9 +394,24 @@ documents/<userId>/<documentId>/<random>.<ext>
   `../../etc/passwd` là một tên file hợp lệ. Tên hiển thị lưu ở cột `name`, còn
   key là do server đặt — hai thứ hoàn toàn tách rời.
 
-Tải file về là endpoint riêng, **chưa có trong đặc tả này**. Khi làm, nó phải
-kiểm tra quyền sở hữu rồi mới stream — hoặc trả presigned URL hạn ngắn. Đừng
-public cả bucket.
+### GET /api/documents/:id/file — tải nội dung file
+
+Kiểm tra quyền sở hữu rồi mới stream; `storageKey` không bao giờ lộ ra ngoài,
+client chỉ biết `id`. Response headers:
+
+- `Content-Type` — MIME thật đã đọc từ magic bytes lúc upload (cột nội bộ
+  `mimeType`).
+- `Content-Disposition: inline` **chỉ** cho `image/*` và `video/*` trong danh
+  sách trắng (không có SVG) — để xem trước ảnh/video ngay trong app; hai nhóm
+  này trình duyệt render bằng bộ giải mã media thuần, không chạy được script.
+  Mọi loại khác dùng `attachment` — PDF có JavaScript nhúng, không để trình
+  duyệt render trong ngữ cảnh domain của mình.
+- `X-Content-Type-Options: nosniff` — luôn bật.
+- `Cache-Control: private, max-age=3600` — nội dung file bất biến nên cache
+  riêng tư được.
+
+Lỗi: `401 UNAUTHENTICATED`, `404 NOT_FOUND` (không tồn tại, của người khác,
+hoặc file đã mất khỏi kho).
 
 **Response 201**
 
