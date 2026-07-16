@@ -1,6 +1,9 @@
 # Công việc API
 
-> **Trạng thái: chưa hiện thực.** Xem [README.md](README.md) cho quy ước chung.
+> **Trạng thái: ĐÃ HIỆN THỰC** — route handler trong `src/app/api/tasks*` và
+> `src/app/api/projects*`, validate + logic `completedAt` dùng chung trong
+> `src/lib/api/tasks.ts`. Giao diện `/tasks` và widget dashboard chạy trên
+> dữ liệu thật. Xem [README.md](README.md) cho quy ước chung.
 
 Module này quản lý công việc và dự án gom nhóm chúng. Map tới model `Task` và
 `Project` trong `prisma/schema.prisma`; shape response khớp `Task` và `Project`
