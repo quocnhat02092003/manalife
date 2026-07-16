@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { ExpenseStats } from "@/components/expenses/expense-stats";
 import { CategoryDonutCard } from "@/components/expenses/category-donut-card";
+import { getDict } from "@/lib/i18n/server";
 import { BudgetCard } from "@/components/expenses/budget-card";
 import { TransactionList } from "@/components/expenses/transaction-list";
 
@@ -25,15 +26,16 @@ export const metadata: Metadata = { title: "Chi tiêu" };
  * Trang là server component; chỉ phần lọc giao dịch cần state nên
  * `TransactionList` được tách ra thành client component.
  */
-export default function ExpensesPage() {
+export default async function ExpensesPage() {
+  const t = await getDict();
   const spent = totalSpent(expenses);
   const income = totalIncome(expenses);
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Chi tiêu"
-        description="Theo dõi dòng tiền và hạn mức của bạn trong tháng này."
+        title={t.pages.expenses.title}
+        description={t.pages.expenses.description}
         action={
           <Button>
             <Plus size={16} />

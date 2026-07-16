@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
+import { enUS, vi } from "date-fns/locale";
 import { Bell, BellOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
+import type { Locale } from "@/lib/i18n/dictionary";
 import { IconButton } from "@/components/ui/button";
 import {
   clearAll,
@@ -14,16 +16,21 @@ import {
   type AppNotification,
 } from "@/lib/notifications";
 
-/** "5 phút trước" — thời gian tương đối, tiếng Việt. */
-function timeAgo(iso: string): string {
-  return formatDistanceToNow(new Date(iso), { addSuffix: true, locale: vi });
+/** "5 phút trước" / "5 minutes ago" — thời gian tương đối theo ngôn ngữ app. */
+function timeAgo(iso: string, locale: Locale): string {
+  return formatDistanceToNow(new Date(iso), {
+    addSuffix: true,
+    locale: locale === "vi" ? vi : enUS,
+  });
 }
 
 function NotificationItem({
   notification,
+  locale,
   onNavigate,
 }: {
   notification: AppNotification;
+  locale: Locale;
   onNavigate: () => void;
 }) {
   const body = (
@@ -46,7 +53,7 @@ function NotificationItem({
           </span>
         ) : null}
         <span className="mt-0.5 block text-[11px] text-ink-faint">
-          {timeAgo(notification.createdAt)}
+          {timeAgo(notification.createdAt, locale)}
         </span>
       </span>
     </>
@@ -74,6 +81,7 @@ function NotificationItem({
  */
 export function NotificationsBell() {
   const notifications = useNotifications();
+  const { locale, t } = useI18n();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -102,10 +110,10 @@ export function NotificationsBell() {
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative ml-auto lg:ml-0">
+    <div ref={containerRef} className="relative">
       <IconButton
         aria-label={
-          unread > 0 ? `Thông báo — ${unread} mục chưa đọc` : "Thông báo"
+          unread > 0 ? t.notifications.unreadAria(unread) : t.notifications.aria
         }
         aria-expanded={open}
         aria-haspopup="true"
@@ -124,18 +132,20 @@ export function NotificationsBell() {
       {open ? (
         <div
           role="dialog"
-          aria-label="Thông báo"
+          aria-label={t.notifications.aria}
           className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-line bg-surface shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <h2 className="text-[13px] font-semibold text-ink">Thông báo</h2>
+            <h2 className="text-[13px] font-semibold text-ink">
+              {t.notifications.title}
+            </h2>
             {notifications.length > 0 ? (
               <button
                 type="button"
                 onClick={clearAll}
                 className="text-[12px] font-medium text-ink-faint transition-colors hover:text-danger"
               >
-                Xoá tất cả
+                {t.notifications.clearAll}
               </button>
             ) : null}
           </div>
@@ -146,6 +156,7 @@ export function NotificationsBell() {
                 <li key={notification.id}>
                   <NotificationItem
                     notification={notification}
+                    locale={locale}
                     onNavigate={() => setOpen(false)}
                   />
                 </li>
@@ -155,7 +166,7 @@ export function NotificationsBell() {
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
               <BellOff size={20} className="text-ink-faint" aria-hidden />
               <p className="text-[13px] text-ink-faint">
-                Chưa có thông báo nào.
+                {t.notifications.empty}
               </p>
             </div>
           )}

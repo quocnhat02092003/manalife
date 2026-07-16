@@ -21,6 +21,8 @@ export interface NavItem {
 
 export interface NavSection {
   title: string | null;
+  /** Khoá dịch trong t.nav.sections — null với nhóm không tiêu đề. */
+  key: "daily" | "longterm" | "archive" | null;
   items: NavItem[];
 }
 
@@ -31,6 +33,7 @@ export interface NavSection {
 export const navSections: NavSection[] = [
   {
     title: null,
+    key: null,
     items: [
       {
         label: "Tổng quan",
@@ -42,6 +45,7 @@ export const navSections: NavSection[] = [
   },
   {
     title: "Hằng ngày",
+    key: "daily",
     items: [
       {
         label: "Lịch",
@@ -71,6 +75,7 @@ export const navSections: NavSection[] = [
   },
   {
     title: "Dài hạn",
+    key: "longterm",
     items: [
       {
         label: "Mục tiêu",
@@ -88,6 +93,7 @@ export const navSections: NavSection[] = [
   },
   {
     title: "Lưu trữ",
+    key: "archive",
     items: [
       {
         label: "Tài liệu",

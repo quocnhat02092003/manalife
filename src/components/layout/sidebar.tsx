@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
 import { navSections } from "@/config/nav";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
 import { Avatar } from "@/components/ui/avatar";
 
 interface SidebarUser {
@@ -29,6 +30,7 @@ export function Sidebar({
   className?: string;
 }) {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <aside
@@ -47,9 +49,9 @@ export function Sidebar({
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
         {navSections.map((section, i) => (
           <div key={section.title ?? i} className={cn(i > 0 && "mt-6")}>
-            {section.title ? (
+            {section.key ? (
               <p className="px-2 pb-2 text-[11px] font-semibold text-ink-faint uppercase">
-                {section.title}
+                {t.nav.sections[section.key]}
               </p>
             ) : null}
             <ul className="space-y-0.5">
@@ -74,7 +76,7 @@ export function Sidebar({
                         strokeWidth={active ? 2.4 : 2}
                         className={active ? "text-brand-600" : "text-ink-faint"}
                       />
-                      {item.label}
+                      {t.nav.items[item.href]?.label ?? item.label}
                     </Link>
                   </li>
                 );
@@ -102,14 +104,14 @@ export function Sidebar({
             className="flex flex-1 items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-ink-soft transition-colors hover:bg-surface-muted hover:text-ink"
           >
             <Settings size={15} className="text-ink-faint" />
-            Cài đặt
+            {t.shell.settings}
           </Link>
           <Link
             href="/logout"
             className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-ink-soft transition-colors hover:bg-surface-muted hover:text-ink"
           >
             <LogOut size={15} className="text-ink-faint" />
-            Thoát
+            {t.shell.logout}
           </Link>
         </div>
       </div>

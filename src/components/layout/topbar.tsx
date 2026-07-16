@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { IconButton } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { NotificationsBell } from "@/components/layout/notifications-bell";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { useI18n } from "@/lib/i18n/client";
 
 interface TopbarUser {
   name: string;
@@ -22,16 +24,20 @@ interface TopbarUser {
  */
 export function Topbar({ user }: { user: TopbarUser }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const current = navItems.find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   );
+  /** Nhãn điều hướng theo ngôn ngữ hiện tại; thiếu khoá thì giữ bản gốc. */
+  const navLabel = (href: string, fallback: string) =>
+    t.nav.items[href]?.label ?? fallback;
 
   return (
     <>
       <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 lg:px-6">
         <IconButton
-          aria-label="Mở menu"
+          aria-label={t.shell.openMenu}
           className="lg:hidden"
           onClick={() => setMenuOpen(true)}
         >
@@ -39,7 +45,7 @@ export function Topbar({ user }: { user: TopbarUser }) {
         </IconButton>
 
         <span className="text-sm font-semibold text-ink lg:hidden">
-          {current?.label ?? "manalife"}
+          {current ? navLabel(current.href, current.label) : "manalife"}
         </span>
 
         <div className="relative ml-auto hidden w-full max-w-sm lg:block">
@@ -49,18 +55,22 @@ export function Topbar({ user }: { user: TopbarUser }) {
           />
           <input
             type="search"
-            placeholder="Tìm trong mọi thứ bạn đã lưu…"
-            aria-label="Tìm kiếm"
+            placeholder={t.shell.searchPlaceholder}
+            aria-label={t.shell.searchAria}
             className="h-9 w-full rounded-lg border border-line bg-surface-muted pr-3 pl-9 text-[13px] text-ink transition-colors placeholder:text-ink-faint focus:border-brand-400 focus:bg-surface focus:outline-none"
           />
         </div>
 
-        <NotificationsBell />
+        {/* Chuyển ngôn ngữ đứng cạnh chuông thông báo. */}
+        <span className="ml-auto flex items-center gap-1 lg:ml-0">
+          <LanguageSwitcher />
+          <NotificationsBell />
+        </span>
 
         <Link
           href="/settings"
-          title={`${user.name} — mở Cài đặt`}
-          aria-label="Tài khoản và cài đặt"
+          title={`${user.name} — ${t.shell.settings}`}
+          aria-label={t.shell.accountAria}
           className="shrink-0 rounded-full transition-opacity hover:opacity-85"
         >
           <Avatar name={user.name} src={user.avatarUrl} size="sm" />
@@ -70,7 +80,7 @@ export function Topbar({ user }: { user: TopbarUser }) {
       {menuOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
-            aria-label="Đóng menu"
+            aria-label={t.shell.closeMenu}
             className="absolute inset-0 bg-ink/25"
             onClick={() => setMenuOpen(false)}
           />
@@ -80,7 +90,7 @@ export function Topbar({ user }: { user: TopbarUser }) {
                 manalife
               </span>
               <IconButton
-                aria-label="Đóng menu"
+                aria-label={t.shell.closeMenu}
                 onClick={() => setMenuOpen(false)}
               >
                 <X size={18} />
@@ -89,9 +99,9 @@ export function Topbar({ user }: { user: TopbarUser }) {
             <div className="flex-1 overflow-y-auto px-3 pb-4">
               {navSections.map((section, i) => (
                 <div key={section.title ?? i} className={cn(i > 0 && "mt-5")}>
-                  {section.title ? (
+                  {section.key ? (
                     <p className="px-2 pb-2 text-[11px] font-semibold text-ink-faint uppercase">
-                      {section.title}
+                      {t.nav.sections[section.key]}
                     </p>
                   ) : null}
                   <ul className="space-y-0.5">
@@ -115,7 +125,7 @@ export function Topbar({ user }: { user: TopbarUser }) {
                                 active ? "text-brand-600" : "text-ink-faint"
                               }
                             />
-                            {item.label}
+                            {navLabel(item.href, item.label)}
                           </Link>
                         </li>
                       );

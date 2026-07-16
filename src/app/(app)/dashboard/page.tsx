@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
+import { getDict } from "@/lib/i18n/server";
+import type { Dict } from "@/lib/i18n/dictionary";
 import { CalendarWidget } from "@/components/dashboard/calendar-widget";
 import { TasksWidget } from "@/components/dashboard/tasks-widget";
 import { HabitsWidget } from "@/components/dashboard/habits-widget";
@@ -9,13 +11,13 @@ import { SecondBrainWidget } from "@/components/dashboard/second-brain-widget";
 
 export const metadata: Metadata = { title: "Tổng quan" };
 
-/** Lời chào đổi theo giờ trong ngày. */
-function greeting(): string {
+/** Lời chào đổi theo giờ trong ngày, theo ngôn ngữ đang chọn. */
+function greeting(t: Dict): string {
   const hour = new Date().getHours();
-  if (hour < 11) return "Chào buổi sáng";
-  if (hour < 14) return "Chào buổi trưa";
-  if (hour < 18) return "Chào buổi chiều";
-  return "Chào buổi tối";
+  if (hour < 11) return t.pages.dashboard.morning;
+  if (hour < 14) return t.pages.dashboard.noon;
+  if (hour < 18) return t.pages.dashboard.afternoon;
+  return t.pages.dashboard.evening;
 }
 
 /**
@@ -36,15 +38,16 @@ export default async function DashboardPage() {
   // Layout (app) đã chặn khi chưa đăng nhập nên session ở đây luôn có.
   const session = await getSession();
   const firstName = session?.user.name.split(" ").at(-1);
+  const t = await getDict();
 
   return (
     <div className="mx-auto max-w-6xl">
       <div className="pb-6">
         <h1 className="text-[26px] font-semibold text-ink">
-          {greeting()}, {firstName}
+          {greeting(t)}, {firstName}
         </h1>
         <p className="mt-1 text-sm text-ink-soft">
-          Đây là toàn cảnh ngày hôm nay của bạn.
+          {t.pages.dashboard.subtitle}
         </p>
       </div>
 

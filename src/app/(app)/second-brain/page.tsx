@@ -5,18 +5,20 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon-tile";
+import { getDict } from "@/lib/i18n/server";
 import { GraphView } from "@/components/second-brain/graph-view";
 import { CapturesBrowser } from "@/components/second-brain/captures-browser";
 
 export const metadata: Metadata = { title: "Second Brain" };
 
 /** Đồ thị tri thức phía trên, bên dưới là toàn bộ nội dung đã lưu. */
-export default function SecondBrainPage() {
+export default async function SecondBrainPage() {
+  const t = await getDict();
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Second Brain"
-        description="Kết nối ý tưởng. Mở rộng tư duy."
+        title={t.pages.secondBrain.title}
+        description={t.pages.secondBrain.description}
         action={
           <Button>
             <Plus size={17} />

@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { HabitCard } from "@/components/habits/habit-card";
+import { getDict } from "@/lib/i18n/server";
 import { HabitsHeatmap } from "@/components/habits/habits-heatmap";
 import { HabitsStats } from "@/components/habits/habits-stats";
 
@@ -15,12 +16,13 @@ export const metadata: Metadata = { title: "Thói quen" };
  * Trang Thói quen: thống kê tuần, lưới thẻ từng thói quen và lưới hoàn thành
  * 7 ngày — đúng bằng khoảng thời gian có dữ liệu thật.
  */
-export default function HabitsPage() {
+export default async function HabitsPage() {
+  const t = await getDict();
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Thói quen"
-        description="Theo dõi chuỗi ngày và tiến độ tuần của từng thói quen."
+        title={t.pages.habits.title}
+        description={t.pages.habits.description}
         action={
           <Button>
             <Plus size={16} />

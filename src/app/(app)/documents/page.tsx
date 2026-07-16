@@ -7,6 +7,7 @@ import {
   toDocument,
   toFolder,
 } from "@/lib/api/documents";
+import { getDict } from "@/lib/i18n/server";
 import { PageHeader } from "@/components/ui/page-header";
 import { ExpiringSoon } from "@/components/documents/expiring-soon";
 import { DocumentsBrowser } from "@/components/documents/documents-browser";
@@ -41,12 +42,13 @@ export default async function DocumentsPage() {
 
   const folders = folderRows.map(toFolder);
   const documents = documentRows.map(toDocument);
+  const t = await getDict();
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Tài liệu"
-        description="Giấy tờ, hợp đồng, hình ảnh và video của bạn, luôn tìm lại được khi cần."
+        title={t.pages.documents.title}
+        description={t.pages.documents.description}
       />
 
       <ExpiringSoon documents={documents} folders={folders} />

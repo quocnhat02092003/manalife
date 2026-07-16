@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LogOut, Palette, Shield, User } from "lucide-react";
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
+import { getDict } from "@/lib/i18n/server";
 import { prisma } from "@/lib/db";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,12 +21,6 @@ export const metadata: Metadata = { title: "Cài đặt" };
  * gọi `PATCH /api/me`, form mật khẩu gọi `POST /api/auth/change-password`
  * (xem docs/api/auth.md).
  */
-/** Tên hiển thị của từng provider OAuth. */
-const providerLabels: Record<string, string> = {
-  google: "Google",
-  github: "GitHub",
-};
-
 export default async function SettingsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -35,21 +30,16 @@ export default async function SettingsPage() {
   // khẩu để đổi — thẻ Bảo mật hiển thị lời giải thích thay vì form vô nghĩa.
   const account = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: {
-      passwordHash: true,
-      oauthAccounts: { select: { provider: true } },
-    },
+    select: { passwordHash: true },
   });
   const hasPassword = Boolean(account?.passwordHash);
-  const linkedProviders = (account?.oauthAccounts ?? [])
-    .map((a) => providerLabels[a.provider] ?? a.provider)
-    .join(", ");
+  const t = await getDict();
 
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="Cài đặt"
-        description="Quản lý tài khoản và tuỳ chọn hiển thị của bạn."
+        title={t.pages.settings.title}
+        description={t.pages.settings.description}
       />
 
       <div className="space-y-4">
@@ -135,12 +125,7 @@ export default async function SettingsPage() {
           ) : (
             <CardContent>
               <p className="text-[13px] leading-relaxed text-ink-soft">
-                Tài khoản của bạn đăng nhập qua{" "}
-                <span className="font-medium text-ink">
-                  {linkedProviders || "nhà cung cấp bên ngoài"}
-                </span>{" "}
-                nên không dùng mật khẩu — việc bảo mật do bên đó đảm nhiệm.
-                Không có gì để đổi ở đây.
+                Không có gì để hiển thị ở đây.
               </p>
             </CardContent>
           )}
