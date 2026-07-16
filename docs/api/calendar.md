@@ -1,6 +1,9 @@
 # Lịch API
 
-> **Trạng thái: chưa hiện thực.** Xem [README.md](README.md) cho quy ước chung.
+> **Trạng thái: ĐÃ HIỆN THỰC** — route handler trong `src/app/api/events*`,
+> validate/mapper dùng chung trong `src/lib/api/events.ts`. Giao diện
+> `/calendar` chạy trên dữ liệu thật: tải theo khoảng lưới đang xem, tạo/sửa
+> qua dialog, xoá có xác nhận. Xem [README.md](README.md) cho quy ước chung.
 
 Module này quản lý sự kiện trên lịch của người dùng: tạo, sửa, xoá và truy vấn
 theo khoảng ngày. Map tới model `CalendarEvent` trong `prisma/schema.prisma`,
