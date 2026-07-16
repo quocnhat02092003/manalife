@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "@/components/shadcn/sonner";
 import "./globals.css";
 
+// Inter được chọn vì có subset tiếng Việt — shadcn init từng tự đổi sang
+// Geist (không có subset vi) và đã bị hoàn nguyên. Đừng để CLI đổi lại.
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
   variable: "--font-inter",
@@ -22,7 +25,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="vi" className={`${inter.variable} h-full`}>
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        {children}
+        {/* Toast toàn app (sonner qua shadcn) — gọi bằng toast.success/error. */}
+        <Toaster position="bottom-right" />
+      </body>
     </html>
   );
 }
