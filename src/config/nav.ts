@@ -5,7 +5,6 @@ import {
   CircleCheck,
   FileText,
   LayoutDashboard,
-  Mail,
   NotebookPen,
   Sprout,
   Target,
