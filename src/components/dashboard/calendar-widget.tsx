@@ -2,9 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { addMonths, format, isSameDay, isSameMonth } from "date-fns";
-import { CalendarDays, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheck,
+  Loader2,
+} from "lucide-react";
 import { cn, formatTime } from "@/lib/utils";
-import type { EventColor } from "@/types";
+import type { EventColor, TaskPriority } from "@/types";
 import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/button";
 import { Dot } from "@/components/ui/badge";
@@ -21,30 +27,45 @@ const dotColors: Record<EventColor, string> = {
   sand: "bg-sand",
 };
 
+/** Chấm của việc — cùng họ màu ưu tiên với chip việc trên lịch lớn. */
+const taskDotColors: Record<TaskPriority, string> = {
+  high: "bg-clay",
+  medium: "bg-sand",
+  low: "bg-ink-faint",
+};
+
 /**
- * Lịch tháng thu nhỏ + danh sách sự kiện của ngày đang chọn — cùng dữ liệu
- * thật với trang /calendar (useMonthEvents, tải đúng khoảng lưới đang xem).
- * Chấm màu dưới mỗi ngày cho biết ngày đó có sự kiện gì.
+ * Lịch tháng thu nhỏ + sự kiện và việc đến hạn của ngày đang chọn — cùng
+ * dữ liệu thật với trang /calendar (useMonthEvents, tải đúng khoảng lưới).
+ * Chấm màu dưới mỗi ngày: sự kiện theo màu sự kiện, việc theo độ ưu tiên.
  */
 export function CalendarWidget() {
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(today);
   const [selected, setSelected] = useState(today);
 
-  const { days, events, loading } = useMonthEvents(cursor);
+  const { days, events, tasks, loading } = useMonthEvents(cursor, {
+    includeTasks: true,
+  });
 
-  /** Gom sự kiện theo ngày để tra cứu O(1) khi vẽ lưới. */
-  const eventsByDay = useMemo(() => {
-    const map = new Map<string, EventColor[]>();
-    for (const event of events) {
-      const key = format(new Date(event.startsAt), "yyyy-MM-dd");
+  /** Gom chấm màu theo ngày (sự kiện trước, việc sau) — tra cứu O(1). */
+  const dotsByDay = useMemo(() => {
+    const map = new Map<string, string[]>();
+    const push = (key: string, colorClass: string) => {
       const list = map.get(key) ?? [];
       // Tối đa 3 chấm mỗi ô để không phá vỡ chiều cao lưới.
-      if (list.length < 3) list.push(event.color);
+      if (list.length < 3) list.push(colorClass);
       map.set(key, list);
+    };
+    for (const event of events) {
+      push(format(new Date(event.startsAt), "yyyy-MM-dd"), dotColors[event.color]);
+    }
+    for (const task of tasks) {
+      if (!task.dueAt || task.status === "done") continue;
+      push(format(new Date(task.dueAt), "yyyy-MM-dd"), taskDotColors[task.priority]);
     }
     return map;
-  }, [events]);
+  }, [events, tasks]);
 
   const selectedEvents = useMemo(
     () =>
@@ -52,6 +73,14 @@ export function CalendarWidget() {
         .filter((e) => isSameDay(new Date(e.startsAt), selected))
         .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
     [events, selected],
+  );
+
+  const selectedTasks = useMemo(
+    () =>
+      tasks
+        .filter((t) => t.dueAt && isSameDay(new Date(t.dueAt), selected))
+        .sort((a, b) => (a.dueAt ?? "").localeCompare(b.dueAt ?? "")),
+    [tasks, selected],
   );
 
   return (
@@ -99,7 +128,7 @@ export function CalendarWidget() {
 
           {days.map((day) => {
             const key = format(day, "yyyy-MM-dd");
-            const dots = eventsByDay.get(key) ?? [];
+            const dots = dotsByDay.get(key) ?? [];
             const isToday = isSameDay(day, today);
             const isSelected = isSameDay(day, selected);
             const inMonth = isSameMonth(day, cursor);
@@ -125,10 +154,10 @@ export function CalendarWidget() {
                   {format(day, "d")}
                 </span>
                 <span className="flex h-1.5 items-center gap-0.5">
-                  {dots.map((color, i) => (
+                  {dots.map((colorClass, i) => (
                     <span
                       key={i}
-                      className={cn("size-1 rounded-full", dotColors[color])}
+                      className={cn("size-1 rounded-full", colorClass)}
                     />
                   ))}
                 </span>
@@ -139,7 +168,7 @@ export function CalendarWidget() {
       </div>
 
       <div className="mt-3 border-t border-line px-5 py-4">
-        {selectedEvents.length > 0 ? (
+        {selectedEvents.length > 0 || selectedTasks.length > 0 ? (
           <ul className="space-y-2.5">
             {selectedEvents.map((event) => (
               <li key={event.id} className="flex items-center gap-3 text-[13px]">
@@ -150,10 +179,39 @@ export function CalendarWidget() {
                 <span className="truncate text-ink">{event.title}</span>
               </li>
             ))}
+            {/* Việc đến hạn trong ngày — icon ✓ phân biệt với sự kiện. */}
+            {selectedTasks.map((task) => {
+              const done = task.status === "done";
+              return (
+                <li key={task.id} className="flex items-center gap-3 text-[13px]">
+                  <CircleCheck
+                    size={13}
+                    aria-hidden
+                    className={cn(
+                      "shrink-0",
+                      done ? "text-ink-faint" : "text-brand-600",
+                    )}
+                  />
+                  <span className="w-11 shrink-0 font-medium text-ink-soft">
+                    {task.dueAt ? formatTime(new Date(task.dueAt)) : ""}
+                  </span>
+                  <span
+                    className={cn(
+                      "truncate",
+                      done ? "text-ink-faint line-through" : "text-ink",
+                    )}
+                  >
+                    {task.title}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="py-1 text-[13px] text-ink-faint">
-            {loading ? "Đang tải sự kiện…" : "Không có sự kiện nào trong ngày này."}
+            {loading
+              ? "Đang tải sự kiện…"
+              : "Không có sự kiện hay việc đến hạn nào trong ngày này."}
           </p>
         )}
       </div>

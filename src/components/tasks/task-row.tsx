@@ -21,8 +21,11 @@ const priorityLabels: Record<TaskPriority, string> = {
   low: "Thấp",
 };
 
-/** Hạn chót ở dạng người đọc được: gần thì dùng từ tương đối, xa thì ghi ngày. */
-function formatDue(iso: string): string {
+/**
+ * Hạn chót ở dạng người đọc được: gần thì dùng từ tương đối, xa thì ghi ngày.
+ * Export để widget dashboard hiển thị hạn đúng cùng một kiểu chữ nghĩa.
+ */
+export function formatDue(iso: string): string {
   const date = parseISO(iso);
   const time = format(date, "HH:mm");
   if (isToday(date)) return `Hôm nay, ${time}`;

@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CircleCheck, Plus } from "lucide-react";
+import { isPast, parseISO } from "date-fns";
+import { CalendarClock, CircleCheck, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatDue } from "@/components/tasks/task-row";
 import type { Task } from "@/types";
 import { Card } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon-tile";
@@ -109,20 +111,38 @@ export function TasksWidget() {
         <ul className="flex-1 space-y-0.5 px-5">
           {tasks.map((task) => {
             const done = task.status === "done";
+            const overdue =
+              !done && task.dueAt !== null && isPast(parseISO(task.dueAt));
             return (
-              <li key={task.id} className="flex items-center gap-3 py-1.5">
-                <Checkbox
-                  checked={done}
-                  onCheckedChange={() => toggle(task.id)}
-                  label={task.title}
-                />
-                <span
-                  className={cn(
-                    "truncate text-sm transition-colors",
-                    done ? "text-ink-faint line-through" : "text-ink",
-                  )}
-                >
-                  {task.title}
+              <li key={task.id} className="flex items-start gap-3 py-1.5">
+                <span className="pt-0.5">
+                  <Checkbox
+                    checked={done}
+                    onCheckedChange={() => toggle(task.id)}
+                    label={task.title}
+                  />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={cn(
+                      "block truncate text-sm transition-colors",
+                      done ? "text-ink-faint line-through" : "text-ink",
+                    )}
+                  >
+                    {task.title}
+                  </span>
+                  {/* Hạn cụ thể — cùng kiểu chữ nghĩa với trang Công việc. */}
+                  {task.dueAt ? (
+                    <span
+                      className={cn(
+                        "mt-0.5 inline-flex items-center gap-1 text-[11px]",
+                        overdue ? "text-danger" : "text-ink-faint",
+                      )}
+                    >
+                      <CalendarClock size={11} aria-hidden />
+                      {formatDue(task.dueAt)}
+                    </span>
+                  ) : null}
                 </span>
               </li>
             );
