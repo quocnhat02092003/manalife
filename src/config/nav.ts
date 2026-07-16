@@ -91,12 +91,6 @@ export const navSections: NavSection[] = [
     title: "Lưu trữ",
     items: [
       {
-        label: "Email",
-        href: "/email",
-        icon: Mail,
-        description: "Hộp thư gọn gàng, lưu thẳng vào Second Brain.",
-      },
-      {
         label: "Tài liệu",
         href: "/documents",
         icon: FileText,
