@@ -1,15 +1,23 @@
 "use client";
 
 import { format, isSameDay, isSameMonth } from "date-fns";
+import { CircleCheck } from "lucide-react";
 import { cn, formatTime } from "@/lib/utils";
-import type { CalendarEvent } from "@/types";
+import type { CalendarEvent, Task, TaskPriority } from "@/types";
 import { eventBar } from "./event-colors";
 
 /** Nhãn thứ trong tuần, bắt đầu từ Thứ Hai (weekStartsOn: 1). */
 const WEEKDAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
-/** Số thanh sự kiện tối đa hiện trong một ô trước khi gộp thành "+N nữa". */
+/** Số thanh (sự kiện + việc) tối đa trong một ô trước khi gộp thành "+N nữa". */
 const MAX_VISIBLE = 3;
+
+/** Chip việc trên lưới — tone theo độ ưu tiên, cùng họ màu với TaskRow. */
+const taskBar: Record<TaskPriority, string> = {
+  high: "bg-clay-soft text-clay",
+  medium: "bg-sand-soft text-brand-800",
+  low: "bg-surface-muted text-ink-soft",
+};
 
 interface MonthGridProps {
   days: Date[];
@@ -17,6 +25,8 @@ interface MonthGridProps {
   today: Date;
   selected: Date;
   eventsByDay: Map<string, CalendarEvent[]>;
+  /** Việc có hạn trong ngày — vắng mặt thì lưới chỉ vẽ sự kiện. */
+  tasksByDay?: Map<string, Task[]>;
   onSelect: (day: Date) => void;
 }
 
@@ -26,6 +36,7 @@ export function MonthGrid({
   today,
   selected,
   eventsByDay,
+  tasksByDay,
   onSelect,
 }: MonthGridProps) {
   return (
@@ -46,8 +57,12 @@ export function MonthGrid({
         {days.map((day) => {
           const key = format(day, "yyyy-MM-dd");
           const events = eventsByDay.get(key) ?? [];
+          const tasks = tasksByDay?.get(key) ?? [];
+          // Sự kiện đứng trước, việc đứng sau; gộp chung hạn mức 3 thanh/ô.
           const visible = events.slice(0, MAX_VISIBLE);
-          const hidden = events.length - visible.length;
+          const visibleTasks = tasks.slice(0, MAX_VISIBLE - visible.length);
+          const hidden =
+            events.length + tasks.length - visible.length - visibleTasks.length;
           const isToday = isSameDay(day, today);
           const isSelected = isSameDay(day, selected);
           const inMonth = isSameMonth(day, cursor);
@@ -92,6 +107,20 @@ export function MonthGrid({
                     {event.allDay
                       ? event.title
                       : `${formatTime(new Date(event.startsAt))} ${event.title}`}
+                  </span>
+                ))}
+                {visibleTasks.map((task) => (
+                  <span
+                    key={task.id}
+                    className={cn(
+                      "flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-[11px] leading-4 font-medium",
+                      task.status === "done"
+                        ? "bg-surface-muted text-ink-faint line-through"
+                        : taskBar[task.priority],
+                    )}
+                  >
+                    <CircleCheck size={11} className="shrink-0" aria-hidden />
+                    <span className="truncate">{task.title}</span>
                   </span>
                 ))}
                 {hidden > 0 ? (

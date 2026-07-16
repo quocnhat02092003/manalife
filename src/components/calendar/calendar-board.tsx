@@ -5,7 +5,7 @@ import { addMonths, format } from "date-fns";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
-import type { CalendarEvent } from "@/types";
+import type { CalendarEvent, Task } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button, IconButton } from "@/components/ui/button";
 import {
@@ -47,7 +47,10 @@ export function CalendarBoard() {
   const [cursor, setCursor] = useState(today);
   const [selected, setSelected] = useState(today);
 
-  const { days, events, setEvents, loading } = useMonthEvents(cursor);
+  const { days, events, setEvents, tasks, setTasks, loading } = useMonthEvents(
+    cursor,
+    { includeTasks: true },
+  );
 
   const [dialog, setDialog] = useState<{
     open: boolean;
@@ -58,7 +61,26 @@ export function CalendarBoard() {
   );
 
   const eventsByDay = useMemo(() => groupByDay(events), [events]);
-  const selectedEvents = eventsByDay.get(format(selected, "yyyy-MM-dd")) ?? [];
+
+  // Việc có hạn gom theo ngày — cùng chìa khoá yyyy-MM-dd với sự kiện.
+  const tasksByDay = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    const sorted = [...tasks].sort((a, b) =>
+      (a.dueAt ?? "").localeCompare(b.dueAt ?? ""),
+    );
+    for (const task of sorted) {
+      if (!task.dueAt) continue;
+      const key = format(new Date(task.dueAt), "yyyy-MM-dd");
+      const list = map.get(key);
+      if (list) list.push(task);
+      else map.set(key, [task]);
+    }
+    return map;
+  }, [tasks]);
+
+  const selectedKey = format(selected, "yyyy-MM-dd");
+  const selectedEvents = eventsByDay.get(selectedKey) ?? [];
+  const selectedTasks = tasksByDay.get(selectedKey) ?? [];
 
   /** "Hôm nay" vừa kéo lưới về tháng hiện tại, vừa chọn lại ngày hôm nay. */
   function goToday() {
@@ -111,6 +133,31 @@ export function CalendarBoard() {
     });
   }
 
+  /** Tick việc ngay trên lịch — cùng /toggle với trang Công việc. */
+  async function handleToggleTask(target: Task) {
+    const before = tasks;
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === target.id
+          ? { ...task, status: task.status === "done" ? "todo" : "done" }
+          : task,
+      ),
+    );
+
+    const response = await fetch(`/api/tasks/${target.id}/toggle`, {
+      method: "PATCH",
+    });
+    if (!response.ok) {
+      setTasks(before);
+      toast.error("Không cập nhật được công việc. Thử lại sau.");
+      return;
+    }
+    const { data } = (await response.json()) as { data: Task };
+    setTasks((prev) =>
+      prev.map((task) => (task.id === target.id ? data : task)),
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <Card className="lg:col-span-2">
@@ -158,6 +205,7 @@ export function CalendarBoard() {
             today={today}
             selected={selected}
             eventsByDay={eventsByDay}
+            tasksByDay={tasksByDay}
             onSelect={setSelected}
           />
         </div>
@@ -166,9 +214,11 @@ export function CalendarBoard() {
       <DayPanel
         selected={selected}
         events={selectedEvents}
+        tasks={selectedTasks}
         onAdd={() => setDialog({ open: true, event: null })}
         onEdit={(event) => setDialog({ open: true, event })}
         onDelete={setPendingDelete}
+        onToggleTask={handleToggleTask}
       />
 
       <EventDialog

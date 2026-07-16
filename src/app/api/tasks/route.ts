@@ -49,6 +49,18 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // dueAfter + dueBefore = khoảng hạn — lịch tháng dùng cặp này để chỉ lấy
+  // việc đến hạn trong lưới đang xem. Cũng như dueBefore, việc không có hạn
+  // bị loại (gte không khớp null).
+  const rawDueAfter = params.get("dueAfter");
+  let dueAfter: Date | undefined;
+  if (rawDueAfter !== null) {
+    dueAfter = new Date(rawDueAfter);
+    if (Number.isNaN(dueAfter.getTime())) {
+      fields.dueAfter = "dueAfter phải là chuỗi ISO 8601.";
+    }
+  }
+
   const rawSort = params.get("sort") ?? "-createdAt";
   const desc = rawSort.startsWith("-");
   const sortField = (desc ? rawSort.slice(1) : rawSort) as SortField;
@@ -77,8 +89,16 @@ export async function GET(request: NextRequest) {
       ? { projectId: projectId === "none" ? null : projectId }
       : {}),
     ...(priority ? { priority } : {}),
-    // `lt` tự loại dueAt null — đúng ý: việc không hạn không bao giờ "sắp đến hạn".
-    ...(dueBefore ? { dueAt: { lt: dueBefore } } : {}),
+    // `lt`/`gte` tự loại dueAt null — đúng ý: việc không hạn không bao giờ
+    // "sắp đến hạn" và không xuất hiện trên lịch.
+    ...(dueBefore || dueAfter
+      ? {
+          dueAt: {
+            ...(dueBefore ? { lt: dueBefore } : {}),
+            ...(dueAfter ? { gte: dueAfter } : {}),
+          },
+        }
+      : {}),
     ...(q ? { OR: [{ title: { contains: q } }, { notes: { contains: q } }] } : {}),
   };
 

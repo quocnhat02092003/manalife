@@ -40,6 +40,7 @@ Trả về việc của người dùng đang đăng nhập.
 | `projectId` | chuỗi | không | — | Lọc theo dự án. `projectId=none` lấy việc chưa gán dự án. |
 | `priority` | `TaskPriority` | không | — | `low` \| `medium` \| `high`. |
 | `dueBefore` | ISO 8601 | không | — | Chỉ lấy việc có `dueAt` < giá trị này. Việc không có hạn bị loại. |
+| `dueAfter` | ISO 8601 | không | — | Chỉ lấy việc có `dueAt` ≥ giá trị này. Kết hợp với `dueBefore` thành khoảng hạn — lịch tháng dùng cặp này. |
 | `q` | chuỗi | không | — | Tìm trong `title` và `notes`. |
 | `sort` | chuỗi | không | `-createdAt` | Cho phép: `createdAt`, `dueAt`, `priority`, `title`. |
 | `page` | số nguyên | không | `1` | Xem README. |
