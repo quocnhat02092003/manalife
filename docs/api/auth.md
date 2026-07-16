@@ -9,18 +9,20 @@
 
 ## Tổng quan endpoint
 
-| Method | Path | Cần đăng nhập | Mô tả |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Không | Tạo tài khoản mới |
-| `POST` | `/api/auth/login` | Không | Đăng nhập, tạo phiên |
-| `POST` | `/api/auth/logout` | Có | Xoá phiên hiện tại |
-| `GET` | `/api/me` | Có | Thông tin người đang đăng nhập |
-| `PATCH` | `/api/me` | Có | Cập nhật hồ sơ |
-| `POST` | `/api/auth/change-password` | Có | Đổi mật khẩu |
-| `POST` | `/api/auth/forgot-password` | Không | Gửi email đặt lại mật khẩu |
-| `POST` | `/api/auth/reset-password` | Không | Đặt mật khẩu mới bằng token |
-| `GET` | `/api/auth/sessions` | Có | Danh sách phiên đang hoạt động |
-| `DELETE` | `/api/auth/sessions/:id` | Có | Thu hồi một phiên |
+| Method   | Path                        | Cần đăng nhập | Mô tả                          |
+| -------- | --------------------------- | ------------- | ------------------------------ |
+| `POST`   | `/api/auth/register`        | Không         | Tạo tài khoản mới              |
+| `POST`   | `/api/auth/login`           | Không         | Đăng nhập, tạo phiên           |
+| `POST`   | `/api/auth/logout`          | Có            | Xoá phiên hiện tại             |
+| `GET`    | `/api/me`                   | Có            | Thông tin người đang đăng nhập |
+| `PATCH`  | `/api/me`                   | Có            | Cập nhật hồ sơ                 |
+| `POST`   | `/api/auth/change-password` | Có            | Đổi mật khẩu                   |
+| `POST`   | `/api/auth/forgot-password` | Không         | Gửi email đặt lại mật khẩu     |
+| `POST`   | `/api/auth/reset-password`  | Không         | Đặt mật khẩu mới bằng token    |
+| `GET`    | `/api/auth/sessions`        | Có            | Danh sách phiên đang hoạt động |
+| `DELETE` | `/api/auth/sessions/:id`    | Có            | Thu hồi một phiên              |
+| `GET`    | `/api/auth/oauth/:provider` | Không         | Bắt đầu đăng nhập OAuth ✅     |
+| `GET`    | `/api/auth/oauth/:provider/callback` | Không | Provider gọi về ✅         |
 
 ---
 
@@ -33,7 +35,7 @@ Tạo tài khoản và đăng nhập luôn.
 ```json
 {
   "name": "Ngô Minh Thuận",
-  "email": "thuan@luma.vn",
+  "email": "thuan@manalife.vn",
   "password": "mat-khau-that-dai"
 }
 ```
@@ -46,7 +48,7 @@ Tạo tài khoản và đăng nhập luôn.
     "user": {
       "id": "usr_01",
       "name": "Ngô Minh Thuận",
-      "email": "thuan@luma.vn",
+      "email": "thuan@manalife.vn",
       "avatarUrl": null,
       "createdAt": "2026-07-15T05:00:00.000Z"
     },
@@ -55,18 +57,18 @@ Tạo tài khoản và đăng nhập luôn.
 }
 ```
 
-Kèm `Set-Cookie: luma_session=…` (xem [README.md](README.md#xác-thực)).
+Kèm `Set-Cookie: manalife_session=…` (xem [README.md](README.md#xác-thực)).
 
 Chú ý response **không chứa** `passwordHash`. Đừng bao giờ trả nguyên object
 Prisma ra ngoài — hãy chọn trường tường minh bằng `select`.
 
 **Lỗi**
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | Tên/email/mật khẩu không hợp lệ. Kèm `fields`. |
-| 409 | `CONFLICT` | Email đã được đăng ký. |
-| 429 | `RATE_LIMITED` | Quá 5 lần / 15 phút / IP. |
+| HTTP | `code`              | Khi nào                                        |
+| ---- | ------------------- | ---------------------------------------------- |
+| 400  | `VALIDATION_FAILED` | Tên/email/mật khẩu không hợp lệ. Kèm `fields`. |
+| 409  | `CONFLICT`          | Email đã được đăng ký.                         |
+| 429  | `RATE_LIMITED`      | Quá 5 lần / 15 phút / IP.                      |
 
 ---
 
@@ -75,18 +77,18 @@ Prisma ra ngoài — hãy chọn trường tường minh bằng `select`.
 **Request body**
 
 ```json
-{ "email": "thuan@luma.vn", "password": "mat-khau-that-dai" }
+{ "email": "thuan@manalife.vn", "password": "mat-khau-that-dai" }
 ```
 
 **Response 200** — giống `register`.
 
 **Lỗi**
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | Thiếu email hoặc mật khẩu. |
-| 401 | `UNAUTHENTICATED` | Sai email **hoặc** sai mật khẩu. |
-| 429 | `RATE_LIMITED` | Quá 5 lần / 15 phút / IP. |
+| HTTP | `code`              | Khi nào                          |
+| ---- | ------------------- | -------------------------------- |
+| 400  | `VALIDATION_FAILED` | Thiếu email hoặc mật khẩu.       |
+| 401  | `UNAUTHENTICATED`   | Sai email **hoặc** sai mật khẩu. |
+| 429  | `RATE_LIMITED`      | Quá 5 lần / 15 phút / IP.        |
 
 **Thông báo lỗi phải giống hệt nhau cho cả hai trường hợp** — "Email hoặc mật
 khẩu không đúng." Nếu phân biệt "email không tồn tại" và "mật khẩu sai", kẻ tấn
@@ -120,7 +122,7 @@ truy cập.
   "data": {
     "id": "usr_01",
     "name": "Ngô Minh Thuận",
-    "email": "thuan@luma.vn",
+    "email": "thuan@manalife.vn",
     "avatarUrl": null,
     "createdAt": "2026-07-15T05:00:00.000Z"
   }
@@ -141,10 +143,10 @@ Cập nhật hồ sơ. Chỉ gửi trường muốn đổi.
 
 **Lỗi**
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | Tên rỗng hoặc quá ngắn. |
-| 409 | `CONFLICT` | Email mới đã thuộc tài khoản khác. |
+| HTTP | `code`              | Khi nào                            |
+| ---- | ------------------- | ---------------------------------- |
+| 400  | `VALIDATION_FAILED` | Tên rỗng hoặc quá ngắn.            |
+| 409  | `CONFLICT`          | Email mới đã thuộc tài khoản khác. |
 
 Đổi email **không được có hiệu lực ngay**. Phải gửi thư xác nhận tới địa chỉ
 mới và chỉ đổi khi người dùng bấm liên kết. Nếu đổi ngay, một người mượn được
@@ -165,10 +167,10 @@ quên mật khẩu.
 
 **Lỗi**
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | Mật khẩu mới dưới 8 ký tự. |
-| 401 | `UNAUTHENTICATED` | `currentPassword` sai. |
+| HTTP | `code`              | Khi nào                    |
+| ---- | ------------------- | -------------------------- |
+| 400  | `VALIDATION_FAILED` | Mật khẩu mới dưới 8 ký tự. |
+| 401  | `UNAUTHENTICATED`   | `currentPassword` sai.     |
 
 Bắt buộc hỏi lại mật khẩu hiện tại dù người dùng đã đăng nhập — nếu không, ai
 mượn được máy đang mở sẵn cũng đổi được mật khẩu.
@@ -184,13 +186,15 @@ kẻ tấn công vẫn sống thì việc đổi trở nên vô nghĩa.
 **Request body**
 
 ```json
-{ "email": "thuan@luma.vn" }
+{ "email": "thuan@manalife.vn" }
 ```
 
 **Response 200** — **luôn luôn 200**, kể cả khi email không tồn tại:
 
 ```json
-{ "data": { "message": "Nếu email có tài khoản, liên kết đặt lại đã được gửi." } }
+{
+  "data": { "message": "Nếu email có tài khoản, liên kết đặt lại đã được gửi." }
+}
 ```
 
 Trả 404 khi email không tồn tại là biến endpoint này thành công cụ dò danh sách
@@ -200,10 +204,10 @@ khoản".
 
 **Lỗi**
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | Email sai định dạng. |
-| 429 | `RATE_LIMITED` | Quá 3 lần / giờ / email. |
+| HTTP | `code`              | Khi nào                  |
+| ---- | ------------------- | ------------------------ |
+| 400  | `VALIDATION_FAILED` | Email sai định dạng.     |
+| 429  | `RATE_LIMITED`      | Quá 3 lần / giờ / email. |
 
 ---
 
@@ -212,17 +216,20 @@ khoản".
 **Request body**
 
 ```json
-{ "token": "<token từ link trong email>", "newPassword": "mat-khau-moi-dai-hon" }
+{
+  "token": "<token từ link trong email>",
+  "newPassword": "mat-khau-moi-dai-hon"
+}
 ```
 
 **Response 204**
 
 **Lỗi**
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | Mật khẩu mới dưới 8 ký tự. |
-| 401 | `UNAUTHENTICATED` | Token sai, đã dùng, hoặc đã hết hạn. |
+| HTTP | `code`              | Khi nào                              |
+| ---- | ------------------- | ------------------------------------ |
+| 400  | `VALIDATION_FAILED` | Mật khẩu mới dưới 8 ký tự.           |
+| 401  | `UNAUTHENTICATED`   | Token sai, đã dùng, hoặc đã hết hạn. |
 
 Đặt lại mật khẩu xong phải thu hồi **toàn bộ** phiên của người dùng đó.
 
@@ -261,25 +268,56 @@ Thu hồi một phiên. Xoá phiên hiện tại tương đương đăng xuất.
 
 **Lỗi**
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 404 | `NOT_FOUND` | Phiên không tồn tại hoặc thuộc người khác. |
+| HTTP | `code`      | Khi nào                                    |
+| ---- | ----------- | ------------------------------------------ |
+| 404  | `NOT_FOUND` | Phiên không tồn tại hoặc thuộc người khác. |
 
 ---
+
+## Đăng nhập OAuth (Google, GitHub) — ĐÃ HIỆN THỰC
+
+`provider` nhận `google` hoặc `github`. Luồng authorization code:
+
+1. `GET /api/auth/oauth/:provider` sinh `state` chống CSRF (với Google kèm
+   PKCE S256), lưu vào cookie 10 phút rồi chuyển hướng sang provider.
+2. Provider gọi về `/callback?code=…&state=…`. Callback đối chiếu `state`,
+   đổi `code` lấy access token và lấy hồ sơ người dùng.
+3. Tìm user theo thứ tự: (a) `OAuthAccount` đã liên kết → (b) trùng email
+   **đã xác minh** → liên kết thêm provider → (c) tạo user mới với
+   `passwordHash = null`.
+4. Tạo phiên y hệt đăng nhập thường (cookie `manalife_session`, 30 ngày) và
+   chuyển hướng về `/dashboard`.
+
+Mọi nhánh lỗi chuyển hướng về `/login?error=<mã>` với mã: `oauth_denied`
+(người dùng huỷ / state không khớp), `oauth_failed` (đổi code hoặc lấy hồ sơ
+thất bại), `oauth_no_email` (provider không cung cấp email đã xác minh).
+
+Quy tắc an toàn:
+
+- **Không** dùng email làm khoá liên kết — dùng `providerAccountId`
+  (`sub` của Google, `id` số của GitHub). Email bên provider có thể đổi.
+- Chỉ tự liên kết vào tài khoản sẵn có khi email **đã được provider xác
+  minh** — nếu không, kẻ tấn công tạo tài khoản GitHub với email của nạn
+  nhân (chưa xác minh) là chiếm được tài khoản.
+- Tài khoản OAuth có `passwordHash = null`: code đăng nhập bằng mật khẩu
+  phải coi null là "sai mật khẩu" (vẫn chạy so sánh hash giả), không crash.
+
+Biến môi trường: `APP_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` — xem `.env.example`.
 
 ## Kiểm tra dữ liệu
 
 Client kiểm tra ở `src/lib/validation.ts` để phản hồi nhanh. **Server phải kiểm
 tra lại y hệt** — ai cũng gọi được API bằng `curl`, bỏ qua toàn bộ form.
 
-| Trường | Quy tắc |
-|---|---|
-| `name` | Không rỗng sau khi trim, tối thiểu 2 ký tự |
-| `email` | Đúng định dạng, chuẩn hoá về chữ thường trước khi lưu và so sánh |
-| `password` | Tối thiểu 8 ký tự |
+| Trường     | Quy tắc                                                          |
+| ---------- | ---------------------------------------------------------------- |
+| `name`     | Không rỗng sau khi trim, tối thiểu 2 ký tự                       |
+| `email`    | Đúng định dạng, chuẩn hoá về chữ thường trước khi lưu và so sánh |
+| `password` | Tối thiểu 8 ký tự                                                |
 
 Chuẩn hoá email về chữ thường là bắt buộc, không phải tuỳ chọn: nếu không,
-`Thuan@luma.vn` và `thuan@luma.vn` sẽ tạo ra hai tài khoản khác nhau và ràng
+`Thuan@manalife.vn` và `thuan@manalife.vn` sẽ tạo ra hai tài khoản khác nhau và ràng
 buộc `@unique` không ngăn được.
 
 Không áp quy tắc độ dài khi **đăng nhập** — mật khẩu cũ có thể được tạo dưới
