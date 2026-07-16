@@ -17,11 +17,9 @@ import { OAuthButtons } from "@/components/auth/oauth-buttons";
 const strengthLabels = ["Rất yếu", "Yếu", "Trung bình", "Khá", "Mạnh"];
 
 /**
- * Form đăng ký.
- *
- * TẦNG UI — chưa tạo tài khoản thật. Khi nối API: thay `setTimeout` bằng
- * `POST /api/auth/register` (xem docs/api/auth.md). Lỗi trùng email do server
- * trả về sẽ đổ vào `errors.email` qua `error.fields`.
+ * Form đăng ký — gọi POST /api/auth/register, tạo tài khoản và đăng nhập
+ * luôn. Lỗi trùng email do server trả về đổ vào `errors.email` qua
+ * `error.fields`.
  */
 export function RegisterForm() {
   const router = useRouter();
@@ -31,18 +29,42 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const strength = passwordStrength(password);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const found = validateRegister({ name, email, password, confirmPassword });
     setErrors(found);
+    setFormError(null);
     if (Object.keys(found).length > 0) return;
 
     setSubmitting(true);
-    setTimeout(() => router.push("/dashboard"), 500);
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (response.ok) {
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string; fields?: FieldErrors };
+      } | null;
+      if (body?.error?.fields) setErrors(body.error.fields);
+      else setFormError(body?.error?.message ?? "Có lỗi xảy ra. Thử lại sau.");
+    } catch {
+      setFormError("Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -51,6 +73,15 @@ export function RegisterForm() {
       <p className="mt-1.5 text-sm text-ink-soft">
         Bắt đầu sắp xếp lại cuộc sống của bạn. Miễn phí.
       </p>
+
+      {formError ? (
+        <p
+          role="alert"
+          className="mt-4 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2.5 text-[13px] text-danger"
+        >
+          {formError}
+        </p>
+      ) : null}
 
       <div className="mt-8 space-y-4">
         <Field label="Tên của bạn" htmlFor="name" error={errors.name}>

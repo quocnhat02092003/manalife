@@ -10,11 +10,9 @@ import { Field, Input } from "@/components/ui/input";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 /**
- * Form đăng nhập.
- *
- * TẦNG UI — chưa xác thực thật. Khi nối API: thay khối `setTimeout` bằng
- * `POST /api/auth/login` (xem docs/api/auth.md), đọc lỗi từ `error.fields`
- * để đổ vào `errors`, và bỏ hẳn phần điều hướng lạc quan ở dưới.
+ * Form đăng nhập — gọi POST /api/auth/login. Lỗi theo trường từ
+ * `error.fields` đổ vào `errors`; lỗi chung (sai email/mật khẩu, mạng) hiện
+ * ở banner trên form.
  */
 export function LoginForm({ oauthError }: { oauthError?: string }) {
   const router = useRouter();
@@ -22,17 +20,41 @@ export function LoginForm({ oauthError }: { oauthError?: string }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const found = validateLogin({ email, password });
     setErrors(found);
+    setFormError(null);
     if (Object.keys(found).length > 0) return;
 
     setSubmitting(true);
-    // Giả lập độ trễ mạng để thấy được trạng thái đang gửi.
-    setTimeout(() => router.push("/dashboard"), 500);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        router.push("/dashboard");
+        // Cây Server Component render lại với phiên mới (topbar, layout…).
+        router.refresh();
+        return;
+      }
+
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string; fields?: FieldErrors };
+      } | null;
+      if (body?.error?.fields) setErrors(body.error.fields);
+      else setFormError(body?.error?.message ?? "Có lỗi xảy ra. Thử lại sau.");
+    } catch {
+      setFormError("Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -42,12 +64,12 @@ export function LoginForm({ oauthError }: { oauthError?: string }) {
         Đăng nhập để tiếp tục với không gian của bạn.
       </p>
 
-      {oauthError ? (
+      {oauthError || formError ? (
         <p
           role="alert"
           className="mt-4 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2.5 text-[13px] text-danger"
         >
-          {oauthError}
+          {formError ?? oauthError}
         </p>
       ) : null}
 

@@ -3,21 +3,35 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LogOut } from "lucide-react";
-import { currentUser } from "@/lib/mock";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
+interface LogoutPanelProps {
+  user: { name: string; email: string; avatarUrl: string | null };
+}
+
 /**
- * TẦNG UI — chưa xoá session thật. Khi nối API: gọi `POST /api/auth/logout`
- * (xem docs/api/auth.md) để server xoá cookie phiên, rồi mới điều hướng.
+ * Màn xác nhận đăng xuất. Nút "Đăng xuất" gọi POST /api/auth/logout để server
+ * xoá phiên khỏi database và xoá cookie, rồi mới điều hướng về /login.
+ * `router.refresh()` để cây Server Component quên sạch dữ liệu của phiên cũ.
  */
-export function LogoutPanel() {
+export function LogoutPanel({ user }: LogoutPanelProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
 
-  function handleLogout() {
+  async function handleLogout() {
     setSubmitting(true);
-    setTimeout(() => router.push("/login"), 400);
+    setError(false);
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error(`logout trả về ${response.status}`);
+      router.push("/login");
+      router.refresh();
+    } catch {
+      setSubmitting(false);
+      setError(true);
+    }
   }
 
   return (
@@ -32,16 +46,20 @@ export function LogoutPanel() {
       </p>
 
       <div className="mt-5 flex items-center justify-center gap-2.5 rounded-xl bg-surface-muted px-4 py-3">
-        <Avatar name={currentUser.name} size="sm" />
+        <Avatar name={user.name} src={user.avatarUrl} size="sm" />
         <div className="min-w-0 text-left">
           <p className="truncate text-[13px] font-semibold text-ink">
-            {currentUser.name}
+            {user.name}
           </p>
-          <p className="truncate text-[11px] text-ink-faint">
-            {currentUser.email}
-          </p>
+          <p className="truncate text-[11px] text-ink-faint">{user.email}</p>
         </div>
       </div>
+
+      {error ? (
+        <p role="alert" className="mt-4 text-[13px] text-danger">
+          Không đăng xuất được. Thử lại nhé.
+        </p>
+      ) : null}
 
       <div className="mt-6 flex gap-2">
         <Button

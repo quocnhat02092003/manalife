@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth/session";
 import { StillLife } from "@/components/marketing/still-life";
 
 /**
  * Khung hai cột cho login/register: cột trái là thương hiệu (ẩn trên mobile),
- * cột phải là form.
+ * cột phải là form. Đã đăng nhập rồi thì các trang này không còn việc gì —
+ * đưa thẳng về dashboard.
  */
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await getSession();
+  if (session) redirect("/dashboard");
+
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       {/* Cột thương hiệu */}
