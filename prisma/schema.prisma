@@ -1,5 +1,5 @@
 // ============================================================================
-// Luma — Prisma schema
+// manalife — Prisma schema
 // ----------------------------------------------------------------------------
 // Các model ở đây map 1-1 với kiểu TypeScript trong src/types/index.ts. Khi đổi
 // một bên, phải đổi bên còn lại.
@@ -34,11 +34,15 @@ model User {
   name         String
   email        String   @unique
   // Băm bằng argon2id. TUYỆT ĐỐI không lưu mật khẩu thô.
-  passwordHash String
+  // Null với tài khoản chỉ đăng nhập qua OAuth (Google/GitHub) — những tài
+  // khoản này không có mật khẩu, và code đăng nhập bằng mật khẩu phải coi
+  // null là "sai mật khẩu" chứ không được crash.
+  passwordHash String?
   avatarUrl    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  oauthAccounts     OAuthAccount[]
   sessions          Session[]
   events            CalendarEvent[]
   tasks             Task[]
@@ -67,6 +71,24 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+}
+
+// Liên kết tài khoản OAuth (Google, GitHub) với User. Một user có thể liên
+// kết nhiều provider; mỗi tài khoản provider chỉ thuộc về đúng một user.
+model OAuthAccount {
+  id     String @id @default(cuid())
+  userId String
+  /// OAuthProvider: google | github
+  provider String
+  /// ID người dùng do provider cấp (sub của Google, id số của GitHub).
+  /// KHÔNG dùng email làm khoá — email bên provider có thể đổi.
+  providerAccountId String
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
   @@index([userId])
 }
 
