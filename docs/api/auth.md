@@ -1,8 +1,11 @@
 # Xác thực API
 
-> **Trạng thái: chưa hiện thực.** Xem [README.md](README.md) cho quy ước chung.
-> Giao diện login/register/logout đã có và chạy được, nhưng hiện chỉ điều hướng
-> lạc quan — chưa gọi API nào. Xem `src/components/auth/`.
+> **Trạng thái: hiện thực một phần.** Đã chạy thật: `register`, `login`,
+> `logout` (route trong `src/app/api/auth/`, form đã nối API, layout `(app)`
+> chặn khi chưa đăng nhập) và **đăng nhập OAuth Google/GitHub** (xem mục
+> OAuth). Chưa hiện thực: `/api/me`, `change-password`, `forgot-password`,
+> `reset-password`, `sessions` — form quên mật khẩu hiện chỉ là UI.
+> Xem [README.md](README.md) cho quy ước chung.
 
 Đăng ký, đăng nhập, đăng xuất và đặt lại mật khẩu. Map tới model `User`,
 `Session` và `PasswordResetToken` trong `prisma/schema.prisma`.
@@ -326,6 +329,13 @@ quy tắc khác. Chỉ cần kiểm tra có nhập hay chưa.
 ## Băm mật khẩu
 
 Dùng **argon2id**. Nếu không có sẵn thì bcrypt với cost ≥ 12.
+
+**Hiện thực hiện tại** (`src/lib/auth/password.ts`): băm mới bằng **bcrypt
+cost 12** (lựa chọn của dự án). Hash argon2id tạo ở giai đoạn trước vẫn verify
+được — `verifyPassword` nhận diện theo prefix `$argon2` — vì đổi thuật toán
+băm không được phép khoá tài khoản đã đăng ký. Khi email không tồn tại hoặc
+tài khoản chỉ có OAuth (`passwordHash = null`), login vẫn chạy một phép so
+sánh với hash mồi để thời gian phản hồi không tố cáo email nào đã đăng ký.
 
 Tuyệt đối không dùng MD5, SHA-1 hay SHA-256 trần để băm mật khẩu — chúng được
 thiết kế để chạy nhanh, đúng thứ mà kẻ tấn công cần khi dò hàng tỉ mật khẩu mỗi
