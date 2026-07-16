@@ -4,16 +4,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
 import { navSections } from "@/config/nav";
-import { currentUser } from "@/lib/mock";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
+
+interface SidebarUser {
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+}
 
 /**
  * Điều hướng chính bên trái. Ẩn dưới lg, thay bằng MobileNav.
  * Trạng thái active so khớp theo tiền tố để route con (ví dụ /notes/abc)
  * vẫn làm sáng mục "Ghi chú".
+ *
+ * `user` là người đang đăng nhập thật, truyền từ layout (app) — component
+ * này không tự đọc phiên để còn dùng được trong Storybook/test sau này.
  */
-export function Sidebar({ className }: { className?: string }) {
+export function Sidebar({
+  user,
+  className,
+}: {
+  user: SidebarUser;
+  className?: string;
+}) {
   const pathname = usePathname();
 
   return (
@@ -72,13 +86,13 @@ export function Sidebar({ className }: { className?: string }) {
 
       <div className="border-t border-line p-3">
         <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
-          <Avatar name={currentUser.name} size="sm" />
+          <Avatar name={user.name} src={user.avatarUrl} size="sm" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold text-ink">
-              {currentUser.name}
+              {user.name}
             </p>
             <p className="truncate text-[11px] text-ink-faint">
-              {currentUser.email}
+              {user.email}
             </p>
           </div>
         </div>

@@ -7,12 +7,19 @@ import { Bell, Menu, Search, X } from "lucide-react";
 import { navItems, navSections } from "@/config/nav";
 import { cn } from "@/lib/utils";
 import { IconButton } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
+
+interface TopbarUser {
+  name: string;
+  avatarUrl: string | null;
+}
 
 /**
- * Thanh trên cùng: nút mở menu (mobile), ô tìm kiếm, chuông thông báo.
+ * Thanh trên cùng: nút mở menu (mobile), ô tìm kiếm, chuông thông báo và
+ * avatar của người đang đăng nhập (bấm vào mở Cài đặt).
  * Ô tìm kiếm hiện là giao diện — sẽ nối vào GET /api/search khi có API.
  */
-export function Topbar() {
+export function Topbar({ user }: { user: TopbarUser }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const current = navItems.find(
@@ -53,6 +60,15 @@ export function Topbar() {
             <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-clay" />
           </span>
         </IconButton>
+
+        <Link
+          href="/settings"
+          title={`${user.name} — mở Cài đặt`}
+          aria-label="Tài khoản và cài đặt"
+          className="shrink-0 rounded-full transition-opacity hover:opacity-85"
+        >
+          <Avatar name={user.name} src={user.avatarUrl} size="sm" />
+        </Link>
       </header>
 
       {menuOpen ? (

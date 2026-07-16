@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { LogOut, Palette, Shield, User } from "lucide-react";
 import Link from "next/link";
-import { currentUser } from "@/lib/mock";
+import { getSession } from "@/lib/auth/session";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,11 @@ export const metadata: Metadata = { title: "Cài đặt" };
  * gọi `PATCH /api/me`, form mật khẩu gọi `POST /api/auth/change-password`
  * (xem docs/api/auth.md).
  */
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  const currentUser = session.user;
+
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
@@ -36,7 +41,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3.5">
-              <Avatar name={currentUser.name} />
+              <Avatar name={currentUser.name} src={currentUser.avatarUrl} />
               <div>
                 <p className="text-sm font-semibold text-ink">
                   {currentUser.name}

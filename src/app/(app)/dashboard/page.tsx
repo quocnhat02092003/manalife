@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { currentUser } from "@/lib/mock";
+import { getSession } from "@/lib/auth/session";
 import { CalendarWidget } from "@/components/dashboard/calendar-widget";
 import { TasksWidget } from "@/components/dashboard/tasks-widget";
 import { HabitsWidget } from "@/components/dashboard/habits-widget";
@@ -32,8 +32,10 @@ function greeting(): string {
  *
  * Dưới lg tất cả xếp thành một cột.
  */
-export default function DashboardPage() {
-  const firstName = currentUser.name.split(" ").at(-1);
+export default async function DashboardPage() {
+  // Layout (app) đã chặn khi chưa đăng nhập nên session ở đây luôn có.
+  const session = await getSession();
+  const firstName = session?.user.name.split(" ").at(-1);
 
   return (
     <div className="mx-auto max-w-6xl">
