@@ -1,8 +1,9 @@
 import { format, getDay } from "date-fns";
-import { CalendarOff, Clock, MapPin } from "lucide-react";
+import { CalendarOff, Clock, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { cn, formatTime } from "@/lib/utils";
 import type { CalendarEvent } from "@/types";
 import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { eventStripe } from "./event-colors";
 
@@ -20,23 +21,37 @@ const FULL_WEEKDAYS = [
 interface DayPanelProps {
   selected: Date;
   events: CalendarEvent[];
+  onAdd: () => void;
+  onEdit: (event: CalendarEvent) => void;
+  onDelete: (event: CalendarEvent) => void;
 }
 
-export function DayPanel({ selected, events }: DayPanelProps) {
+export function DayPanel({
+  selected,
+  events,
+  onAdd,
+  onEdit,
+  onDelete,
+}: DayPanelProps) {
   return (
     <Card className="flex flex-col">
-      <div className="px-5 pt-5 pb-4">
-        <p className="text-[13px] font-medium text-ink-soft">
-          {FULL_WEEKDAYS[getDay(selected)]}
-        </p>
-        <h2 className="mt-0.5 text-[15px] font-semibold text-ink">
-          {format(selected, "d 'tháng' M, yyyy")}
-        </h2>
-        <p className="mt-1 text-[13px] text-ink-faint">
-          {events.length > 0
-            ? `${events.length} sự kiện`
-            : "Chưa có sự kiện nào"}
-        </p>
+      <div className="flex items-start justify-between px-5 pt-5 pb-4">
+        <div>
+          <p className="text-[13px] font-medium text-ink-soft">
+            {FULL_WEEKDAYS[getDay(selected)]}
+          </p>
+          <h2 className="mt-0.5 text-[15px] font-semibold text-ink">
+            {format(selected, "d 'tháng' M, yyyy")}
+          </h2>
+          <p className="mt-1 text-[13px] text-ink-faint">
+            {events.length > 0
+              ? `${events.length} sự kiện`
+              : "Chưa có sự kiện nào"}
+          </p>
+        </div>
+        <IconButton aria-label="Thêm sự kiện vào ngày này" onClick={onAdd}>
+          <Plus size={17} />
+        </IconButton>
       </div>
 
       <div className="border-t border-line">
@@ -45,7 +60,7 @@ export function DayPanel({ selected, events }: DayPanelProps) {
             {events.map((event) => (
               <li
                 key={event.id}
-                className="relative rounded-xl border border-line bg-surface p-3 pl-4"
+                className="group relative rounded-xl border border-line bg-surface p-3 pl-4"
               >
                 <span
                   aria-hidden
@@ -60,6 +75,26 @@ export function DayPanel({ selected, events }: DayPanelProps) {
                     {event.allDay
                       ? "Cả ngày"
                       : `${formatTime(new Date(event.startsAt))} – ${formatTime(new Date(event.endsAt))}`}
+                  </span>
+
+                  {/* Sửa/xoá — hiện khi hover hoặc focus, đỡ rối mắt. */}
+                  <span className="ml-auto flex gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+                    <button
+                      type="button"
+                      aria-label={`Sửa "${event.title}"`}
+                      onClick={() => onEdit(event)}
+                      className="rounded-md p-1 text-ink-faint transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:opacity-100"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Xoá "${event.title}"`}
+                      onClick={() => onDelete(event)}
+                      className="rounded-md p-1 text-ink-faint transition-colors hover:bg-danger/10 hover:text-danger focus-visible:opacity-100"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </span>
                 </div>
 
