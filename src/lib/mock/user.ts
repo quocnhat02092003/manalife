@@ -4,7 +4,7 @@ import { at } from "./dates";
 export const currentUser: User = {
   id: "usr_01",
   name: "Ngô Minh Thuận",
-  email: "thuan@luma.vn",
+  email: "thuan@manalife.vn",
   avatarUrl: null,
   createdAt: at(-240),
 };

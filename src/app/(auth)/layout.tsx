@@ -13,7 +13,7 @@ export default function AuthLayout({
       {/* Cột thương hiệu */}
       <div className="relative hidden flex-col justify-between bg-brand-700 p-10 lg:flex">
         <Link href="/" className="inline-flex items-baseline gap-0.5">
-          <span className="text-[22px] font-bold text-white">Luma</span>
+          <span className="text-[22px] font-bold text-white">manalife</span>
           <span className="size-1.5 rounded-full bg-clay" aria-hidden />
         </Link>
 
@@ -38,7 +38,9 @@ export default function AuthLayout({
             href="/"
             className="mb-8 inline-flex items-baseline gap-0.5 lg:hidden"
           >
-            <span className="text-[22px] font-bold text-brand-700">Luma</span>
+            <span className="text-[22px] font-bold text-brand-700">
+              manalife
+            </span>
             <span className="size-1.5 rounded-full bg-clay" aria-hidden />
           </Link>
           {children}

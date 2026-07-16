@@ -10,19 +10,19 @@ theo các quy ước ở đây, nên các trang sau sẽ không lặp lại chú
 
 ## Mục lục
 
-| Module | Tài liệu | Route |
-|---|---|---|
-| Xác thực | [auth.md](auth.md) | `/api/auth/*` |
-| Lịch | [calendar.md](calendar.md) | `/api/events` |
-| Công việc | [tasks.md](tasks.md) | `/api/tasks`, `/api/projects` |
-| Ghi chú | [notes.md](notes.md) | `/api/notes` |
-| Mục tiêu | [goals.md](goals.md) | `/api/goals` |
-| Chi tiêu | [expenses.md](expenses.md) | `/api/expenses`, `/api/expense-categories` |
-| Thói quen | [habits.md](habits.md) | `/api/habits` |
-| Email | [email.md](email.md) | `/api/emails` |
-| Tài liệu | [documents.md](documents.md) | `/api/documents`, `/api/document-folders` |
-| Second Brain | [second-brain.md](second-brain.md) | `/api/captures`, `/api/graph` |
-| Tìm kiếm | [search.md](search.md) | `/api/search` |
+| Module       | Tài liệu                           | Route                                      |
+| ------------ | ---------------------------------- | ------------------------------------------ |
+| Xác thực     | [auth.md](auth.md)                 | `/api/auth/*`                              |
+| Lịch         | [calendar.md](calendar.md)         | `/api/events`                              |
+| Công việc    | [tasks.md](tasks.md)               | `/api/tasks`, `/api/projects`              |
+| Ghi chú      | [notes.md](notes.md)               | `/api/notes`                               |
+| Mục tiêu     | [goals.md](goals.md)               | `/api/goals`                               |
+| Chi tiêu     | [expenses.md](expenses.md)         | `/api/expenses`, `/api/expense-categories` |
+| Thói quen    | [habits.md](habits.md)             | `/api/habits`                              |
+| Email        | [email.md](email.md)               | `/api/emails`                              |
+| Tài liệu     | [documents.md](documents.md)       | `/api/documents`, `/api/document-folders`  |
+| Second Brain | [second-brain.md](second-brain.md) | `/api/captures`, `/api/graph`              |
+| Tìm kiếm     | [search.md](search.md)             | `/api/search`                              |
 
 ## Địa chỉ gốc
 
@@ -80,17 +80,17 @@ phá vỡ client, và client chỉ cần một hàm duy nhất để phân biệ
 
 ## Mã lỗi
 
-| HTTP | `code` | Khi nào |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | Dữ liệu gửi lên không hợp lệ. Kèm `fields`. |
-| 400 | `MALFORMED_JSON` | Body không phải JSON hợp lệ. |
-| 401 | `UNAUTHENTICATED` | Chưa đăng nhập hoặc phiên đã hết hạn. |
-| 403 | `FORBIDDEN` | Đã đăng nhập nhưng không có quyền với tài nguyên này. |
-| 404 | `NOT_FOUND` | Không tồn tại, **hoặc** tồn tại nhưng thuộc người khác. |
-| 409 | `CONFLICT` | Vi phạm ràng buộc duy nhất, ví dụ email đã đăng ký. |
-| 422 | `UNPROCESSABLE` | Đúng định dạng nhưng vi phạm quy tắc nghiệp vụ. |
-| 429 | `RATE_LIMITED` | Vượt giới hạn tần suất. Kèm header `Retry-After`. |
-| 500 | `INTERNAL_ERROR` | Lỗi không lường trước. Không lộ chi tiết ra ngoài. |
+| HTTP | `code`              | Khi nào                                                 |
+| ---- | ------------------- | ------------------------------------------------------- |
+| 400  | `VALIDATION_FAILED` | Dữ liệu gửi lên không hợp lệ. Kèm `fields`.             |
+| 400  | `MALFORMED_JSON`    | Body không phải JSON hợp lệ.                            |
+| 401  | `UNAUTHENTICATED`   | Chưa đăng nhập hoặc phiên đã hết hạn.                   |
+| 403  | `FORBIDDEN`         | Đã đăng nhập nhưng không có quyền với tài nguyên này.   |
+| 404  | `NOT_FOUND`         | Không tồn tại, **hoặc** tồn tại nhưng thuộc người khác. |
+| 409  | `CONFLICT`          | Vi phạm ràng buộc duy nhất, ví dụ email đã đăng ký.     |
+| 422  | `UNPROCESSABLE`     | Đúng định dạng nhưng vi phạm quy tắc nghiệp vụ.         |
+| 429  | `RATE_LIMITED`      | Vượt giới hạn tần suất. Kèm header `Retry-After`.       |
+| 500  | `INTERNAL_ERROR`    | Lỗi không lường trước. Không lộ chi tiết ra ngoài.      |
 
 **Vì sao 404 thay vì 403 cho tài nguyên của người khác:** trả 403 là gián tiếp
 xác nhận "id này có tồn tại", cho phép dò id hợp lệ. Trả 404 thì kẻ tấn công
@@ -104,7 +104,7 @@ Mọi endpoint **trừ** `/api/auth/register`, `/api/auth/login`,
 Phiên đăng nhập dùng cookie:
 
 ```
-Set-Cookie: luma_session=<token>; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000
+Set-Cookie: manalife_session=<token>; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000
 ```
 
 - `HttpOnly` — JavaScript không đọc được cookie, nên XSS không lấy được token.
@@ -143,10 +143,10 @@ const task = await prisma.task.findUnique({ where: { id: params.id } });
 
 Dùng cho mọi endpoint danh sách:
 
-| Tham số | Kiểu | Mặc định | Giới hạn |
-|---|---|---|---|
-| `page` | số nguyên | `1` | ≥ 1 |
-| `perPage` | số nguyên | `20` | 1–100 |
+| Tham số   | Kiểu      | Mặc định | Giới hạn |
+| --------- | --------- | -------- | -------- |
+| `page`    | số nguyên | `1`      | ≥ 1      |
+| `perPage` | số nguyên | `20`     | 1–100    |
 
 `perPage` bị kẹp cứng ở 100 tại server. Không tin giá trị client gửi lên —
 `perPage=1000000` sẽ làm sập bộ nhớ.
@@ -171,11 +171,11 @@ trong tập giá trị hợp lệ.
 
 ## Giới hạn tần suất
 
-| Nhóm | Giới hạn |
-|---|---|
-| `/api/auth/login`, `/api/auth/register` | 5 request / 15 phút / IP |
-| `/api/auth/forgot-password` | 3 request / giờ / email |
-| Còn lại | 100 request / phút / người dùng |
+| Nhóm                                    | Giới hạn                        |
+| --------------------------------------- | ------------------------------- |
+| `/api/auth/login`, `/api/auth/register` | 5 request / 15 phút / IP        |
+| `/api/auth/forgot-password`             | 3 request / giờ / email         |
+| Còn lại                                 | 100 request / phút / người dùng |
 
 Vượt giới hạn → `429` kèm header `Retry-After` (số giây).
 

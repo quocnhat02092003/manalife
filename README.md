@@ -1,4 +1,4 @@
-# Luma
+# manalife
 
 > Cuộc sống rõ ràng. Ý tưởng không thất lạc.
 
@@ -52,30 +52,30 @@ data), nhưng nó xác nhận schema hợp lệ và tạo sẵn database cho gia
 
 ## Lệnh
 
-| Lệnh | Việc |
-|---|---|
-| `npm run dev` | Chạy server phát triển |
-| `npm run build` | Build production |
-| `npm start` | Chạy bản đã build |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | Kiểm tra kiểu, không sinh file |
-| `npm run db:migrate` | Tạo và áp migration mới |
-| `npm run db:studio` | Mở Prisma Studio để xem database |
-| `npm run db:generate` | Sinh lại Prisma Client |
-| `npm run check:ui` | Kiểm tra vi phạm quy tắc giao diện (gradient / tracking) |
+| Lệnh                  | Việc                                                     |
+| --------------------- | -------------------------------------------------------- |
+| `npm run dev`         | Chạy server phát triển                                   |
+| `npm run build`       | Build production                                         |
+| `npm start`           | Chạy bản đã build                                        |
+| `npm run lint`        | ESLint                                                   |
+| `npm run typecheck`   | Kiểm tra kiểu, không sinh file                           |
+| `npm run db:migrate`  | Tạo và áp migration mới                                  |
+| `npm run db:studio`   | Mở Prisma Studio để xem database                         |
+| `npm run db:generate` | Sinh lại Prisma Client                                   |
+| `npm run check:ui`    | Kiểm tra vi phạm quy tắc giao diện (gradient / tracking) |
 
 ## Công nghệ
 
-| Thành phần | Lựa chọn | Vì sao |
-|---|---|---|
-| Framework | Next.js 16 (App Router) | Server component để giảm JS gửi xuống client |
-| Ngôn ngữ | TypeScript (strict) | |
-| CSS | Tailwind v4 | Token khai báo trong CSS qua `@theme`, không cần file config |
-| Font | Inter (`next/font/google`) | Có subset tiếng Việt |
-| Icon | lucide-react | Nhất quán, tree-shake được |
-| Database | Prisma 7 + SQLite | Chạy ngay, không cần cài server. Đổi sang Postgres = sửa 1 dòng |
-| Ngày giờ | date-fns | Tree-shake được, API thuần hàm |
-| Biểu đồ | SVG tự viết | Không cần thư viện chart cho một biểu đồ tròn |
+| Thành phần | Lựa chọn                   | Vì sao                                                          |
+| ---------- | -------------------------- | --------------------------------------------------------------- |
+| Framework  | Next.js 16 (App Router)    | Server component để giảm JS gửi xuống client                    |
+| Ngôn ngữ   | TypeScript (strict)        |                                                                 |
+| CSS        | Tailwind v4                | Token khai báo trong CSS qua `@theme`, không cần file config    |
+| Font       | Inter (`next/font/google`) | Có subset tiếng Việt                                            |
+| Icon       | lucide-react               | Nhất quán, tree-shake được                                      |
+| Database   | Prisma 7 + SQLite          | Chạy ngay, không cần cài server. Đổi sang Postgres = sửa 1 dòng |
+| Ngày giờ   | date-fns                   | Tree-shake được, API thuần hàm                                  |
+| Biểu đồ    | SVG tự viết                | Không cần thư viện chart cho một biểu đồ tròn                   |
 
 Không dùng thư viện UI component (shadcn, MUI…) — primitives tự viết trong
 `src/components/ui/` đủ dùng và không kéo theo hệ màu riêng cần ghi đè.
@@ -142,18 +142,18 @@ module trong `components/` trùng tên với route trong `app/(app)/`.
 
 ## Chín module
 
-| Module | Route | Làm gì |
-|---|---|---|
-| Tổng quan | `/dashboard` | Toàn cảnh một ngày trong một màn hình |
-| Lịch | `/calendar` | Lưới tháng đầy đủ, sự kiện theo ngày |
-| Công việc | `/tasks` | Nhóm theo quá hạn / hôm nay / sắp tới, lọc theo dự án |
-| Ghi chú | `/notes` | Lưới masonry, tìm kiếm, tag, ghim, Markdown |
-| Thói quen | `/habits` | Chuỗi ngày, lưới nhiệt, tiến độ tuần |
-| Mục tiêu | `/goals` | Tiến độ, cột mốc, lọc theo khung thời gian |
-| Chi tiêu | `/expenses` | Biểu đồ tròn, hạn mức, dòng giao dịch |
-| Email | `/email` | Ba cột, lưu thư vào Second Brain |
-| Tài liệu | `/documents` | Thư mục, tag, **cảnh báo sắp hết hạn** |
-| Second Brain | `/second-brain` | Đồ thị tri thức, 7 loại nội dung, liên kết |
+| Module       | Route           | Làm gì                                                |
+| ------------ | --------------- | ----------------------------------------------------- |
+| Tổng quan    | `/dashboard`    | Toàn cảnh một ngày trong một màn hình                 |
+| Lịch         | `/calendar`     | Lưới tháng đầy đủ, sự kiện theo ngày                  |
+| Công việc    | `/tasks`        | Nhóm theo quá hạn / hôm nay / sắp tới, lọc theo dự án |
+| Ghi chú      | `/notes`        | Lưới masonry, tìm kiếm, tag, ghim, Markdown           |
+| Thói quen    | `/habits`       | Chuỗi ngày, lưới nhiệt, tiến độ tuần                  |
+| Mục tiêu     | `/goals`        | Tiến độ, cột mốc, lọc theo khung thời gian            |
+| Chi tiêu     | `/expenses`     | Biểu đồ tròn, hạn mức, dòng giao dịch                 |
+| Email        | `/email`        | Ba cột, lưu thư vào Second Brain                      |
+| Tài liệu     | `/documents`    | Thư mục, tag, **cảnh báo sắp hết hạn**                |
+| Second Brain | `/second-brain` | Đồ thị tri thức, 7 loại nội dung, liên kết            |
 
 Second Brain là trung tâm của ý tưởng: bảy loại nội dung (ghi chú, bookmark,
 video, podcast, email, tài liệu, hình ảnh) quy về **một shape chung** để tất cả

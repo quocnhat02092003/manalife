@@ -25,7 +25,7 @@ export function Sidebar({ className }: { className?: string }) {
     >
       <div className="px-5 py-5">
         <Link href="/dashboard" className="inline-flex items-baseline gap-0.5">
-          <span className="text-[22px] font-bold text-brand-700">Luma</span>
+          <span className="text-[22px] font-bold text-brand-700">manalife</span>
           <span className="size-1.5 rounded-full bg-clay" aria-hidden />
         </Link>
       </div>
@@ -41,7 +41,8 @@ export function Sidebar({ className }: { className?: string }) {
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const active =
-                  pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
                 return (
                   <li key={item.href}>
                     <Link

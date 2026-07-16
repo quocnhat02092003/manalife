@@ -44,8 +44,8 @@ export function ForgotPasswordForm() {
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-ink-soft">
           Nếu <span className="font-medium text-ink">{email}</span> có tài khoản
-          tại Luma, chúng tôi đã gửi một liên kết đặt lại mật khẩu. Liên kết có
-          hiệu lực trong 30 phút.
+          tại manalife, chúng tôi đã gửi một liên kết đặt lại mật khẩu. Liên kết
+          có hiệu lực trong 30 phút.
         </p>
         <button
           type="button"
@@ -80,7 +80,12 @@ export function ForgotPasswordForm() {
         </Field>
       </div>
 
-      <Button type="submit" size="lg" disabled={submitting} className="mt-6 w-full">
+      <Button
+        type="submit"
+        size="lg"
+        disabled={submitting}
+        className="mt-6 w-full"
+      >
         {submitting ? (
           <>
             <Loader2 size={17} className="animate-spin" />

@@ -33,7 +33,9 @@ export default function LandingPage() {
         {/* ---------------- Thanh điều hướng ---------------- */}
         <header className="flex items-center justify-between px-6 py-5 sm:px-10">
           <span className="inline-flex items-baseline gap-0.5">
-            <span className="text-[22px] font-bold text-brand-700">Luma</span>
+            <span className="text-[22px] font-bold text-brand-700">
+              manalife
+            </span>
             <span className="size-1.5 rounded-full bg-clay" aria-hidden />
           </span>
           <nav className="flex items-center gap-1.5">
@@ -56,13 +58,12 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 gap-10 px-6 pt-6 pb-12 sm:px-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-12 lg:pt-10">
           <div className="flex flex-col">
             <h1 className="text-[84px] leading-[0.9] font-bold text-brand-700 sm:text-[100px]">
-              Luma
+              manalife
             </h1>
 
             <p className="mt-8 text-[30px] leading-[1.25] font-semibold text-ink sm:text-[36px]">
               Cuộc sống rõ ràng.
-              <br />
-              Ý tưởng không thất lạc.
+              <br />Ý tưởng không thất lạc.
             </p>
 
             <p className="mt-5 max-w-md text-[15px] leading-relaxed text-ink-soft">
@@ -192,7 +193,7 @@ export default function LandingPage() {
 
         <footer className="border-t border-line px-6 py-6 sm:px-10">
           <p className="text-[13px] text-ink-faint">
-            Luma — không gian quản lý cuộc sống cá nhân.
+            manalife — không gian quản lý cuộc sống cá nhân.
           </p>
         </footer>
       </div>

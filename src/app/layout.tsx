@@ -10,8 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Luma — Cuộc sống rõ ràng. Ý tưởng không thất lạc.",
-    template: "%s · Luma",
+    default: "manalife — Cuộc sống rõ ràng. Ý tưởng không thất lạc.",
+    template: "%s · manalife",
   },
   description:
     "Không gian quản lý cuộc sống cá nhân: lịch, công việc, ghi chú, mục tiêu, chi tiêu, thói quen, email, tài liệu — và một Second Brain lưu lại mọi thứ bạn từng đọc.",

@@ -26,7 +26,7 @@ Không dùng class `tracking-*` nào, kể cả trên heading lớn. `globals.cs
 
 ```tsx
 // SAI
-<h1 className="text-5xl tracking-tight">Luma</h1>
+<h1 className="text-5xl tracking-tight">manalife</h1>
 ```
 
 Inter đã được thiết kế với khoảng cách chữ cân ở mọi cỡ. Siết tracking ở cỡ lớn
@@ -82,12 +82,12 @@ sẽ lệch tông ngay lập tức.
 
 `brand-50` … `brand-900`. Dùng cho hành động chính, trạng thái active, nhấn mạnh.
 
-| Token | Dùng ở đâu |
-|---|---|
-| `brand-50` | Nền mục đang chọn ở sidebar, nền badge nhẹ |
-| `brand-100` | Nền avatar |
-| `brand-500` | Viền focus, cạnh đồ thị |
-| `brand-600` | Nút chính, ô tick đã chọn, ngày hôm nay |
+| Token       | Dùng ở đâu                                  |
+| ----------- | ------------------------------------------- |
+| `brand-50`  | Nền mục đang chọn ở sidebar, nền badge nhẹ  |
+| `brand-100` | Nền avatar                                  |
+| `brand-500` | Viền focus, cạnh đồ thị                     |
+| `brand-600` | Nút chính, ô tick đã chọn, ngày hôm nay     |
 | `brand-700` | Wordmark, hover của nút chính, nền cột auth |
 
 ### Accent — chỉ để phân loại
@@ -101,16 +101,16 @@ trang trí.
 
 ### Neutral
 
-| Token | Dùng ở đâu |
-|---|---|
-| `canvas` | Nền ngoài cùng của khu vực app |
-| `surface` | Nền thẻ |
+| Token           | Dùng ở đâu                        |
+| --------------- | --------------------------------- |
+| `canvas`        | Nền ngoài cùng của khu vực app    |
+| `surface`       | Nền thẻ                           |
 | `surface-muted` | Nền chìm, ô input, nền trang auth |
-| `line` | Viền thẻ, đường phân cách |
-| `line-strong` | Viền input, viền ô tick chưa chọn |
-| `ink` | Chữ chính |
-| `ink-soft` | Chữ phụ, mô tả |
-| `ink-faint` | Nhãn mờ, placeholder |
+| `line`          | Viền thẻ, đường phân cách         |
+| `line-strong`   | Viền input, viền ô tick chưa chọn |
+| `ink`           | Chữ chính                         |
+| `ink-soft`      | Chữ phụ, mô tả                    |
+| `ink-faint`     | Nhãn mờ, placeholder              |
 
 ### Semantic
 
@@ -125,44 +125,44 @@ chữ trắng thì ổn (~6.5:1).
 Cỡ chữ đặt tường minh bằng `text-[Npx]` thay vì dùng thang mặc định của Tailwind
 — các thẻ trong thiết kế cần những cỡ như 13px và 15px mà thang mặc định không có.
 
-| Vai trò | Cỡ | Độ đậm |
-|---|---|---|
-| Wordmark hero | `text-[84px]` → `text-[100px]` | `font-bold` |
-| Tiêu đề trang | `text-[26px]` | `font-semibold` |
-| Tiêu đề thẻ | `text-[15px]` | `font-semibold` |
-| Nội dung | `text-sm` (14px) | `font-normal` |
-| Phụ | `text-[13px]` | `font-normal` |
-| Nhãn nhỏ | `text-[12px]` / `text-[11px]` | `font-medium` |
+| Vai trò       | Cỡ                             | Độ đậm          |
+| ------------- | ------------------------------ | --------------- |
+| Wordmark hero | `text-[84px]` → `text-[100px]` | `font-bold`     |
+| Tiêu đề trang | `text-[26px]`                  | `font-semibold` |
+| Tiêu đề thẻ   | `text-[15px]`                  | `font-semibold` |
+| Nội dung      | `text-sm` (14px)               | `font-normal`   |
+| Phụ           | `text-[13px]`                  | `font-normal`   |
+| Nhãn nhỏ      | `text-[12px]` / `text-[11px]`  | `font-medium`   |
 
 `font-variant-numeric: tabular-nums` được đặt sẵn ở `body`: số có bề rộng đều
 nhau nên các cột số tiền và tiến độ không bị nhảy khi giá trị thay đổi.
 
 ## Bo góc
 
-| Token | Giá trị | Dùng ở đâu |
-|---|---|---|
-| `rounded-card` | 16px | Thẻ |
-| `rounded-panel` | 20px | Khung ngoài cùng của landing |
-| `rounded-xl` | 12px | Nút lớn, ô icon lớn |
-| `rounded-lg` | 8px | Nút, input, mục sidebar |
-| `rounded-full` | — | Ô tick, chấm, avatar |
+| Token           | Giá trị | Dùng ở đâu                   |
+| --------------- | ------- | ---------------------------- |
+| `rounded-card`  | 16px    | Thẻ                          |
+| `rounded-panel` | 20px    | Khung ngoài cùng của landing |
+| `rounded-xl`    | 12px    | Nút lớn, ô icon lớn          |
+| `rounded-lg`    | 8px     | Nút, input, mục sidebar      |
+| `rounded-full`  | —       | Ô tick, chấm, avatar         |
 
 ## Primitives
 
 Ở `src/components/ui/`. **Dùng lại, đừng viết lại.**
 
-| Component | File | Ghi chú |
-|---|---|---|
-| `Card` và các phần | `card.tsx` | `CardHeader`, `CardTitle`, `CardContent`, `CardFooter` |
-| `Button`, `IconButton` | `button.tsx` | `IconButton` bắt buộc có `aria-label` |
-| `Input`, `Textarea`, `Field` | `input.tsx` | `Field` bọc label + input + lỗi |
-| `Checkbox` | `checkbox.tsx` | Ô tick tròn, bắt buộc có `label` |
-| `Badge`, `Dot` | `badge.tsx` | |
-| `Progress`, `DotStreak` | `progress.tsx` | `Progress` nhận thêm tone `danger` |
-| `IconTile` | `icon-tile.tsx` | Ô icon vuông cạnh tiêu đề thẻ |
-| `Avatar` | `avatar.tsx` | Chữ cái đầu |
-| `EmptyState` | `empty-state.tsx` | |
-| `PageHeader` | `page-header.tsx` | |
+| Component                    | File              | Ghi chú                                                |
+| ---------------------------- | ----------------- | ------------------------------------------------------ |
+| `Card` và các phần           | `card.tsx`        | `CardHeader`, `CardTitle`, `CardContent`, `CardFooter` |
+| `Button`, `IconButton`       | `button.tsx`      | `IconButton` bắt buộc có `aria-label`                  |
+| `Input`, `Textarea`, `Field` | `input.tsx`       | `Field` bọc label + input + lỗi                        |
+| `Checkbox`                   | `checkbox.tsx`    | Ô tick tròn, bắt buộc có `label`                       |
+| `Badge`, `Dot`               | `badge.tsx`       |                                                        |
+| `Progress`, `DotStreak`      | `progress.tsx`    | `Progress` nhận thêm tone `danger`                     |
+| `IconTile`                   | `icon-tile.tsx`   | Ô icon vuông cạnh tiêu đề thẻ                          |
+| `Avatar`                     | `avatar.tsx`      | Chữ cái đầu                                            |
+| `EmptyState`                 | `empty-state.tsx` |                                                        |
+| `PageHeader`                 | `page-header.tsx` |                                                        |
 
 ## Bố cục có trạng thái
 

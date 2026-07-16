@@ -116,7 +116,8 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-[13px] text-ink-soft">
-              Luma hiện chỉ có giao diện sáng. Chế độ tối đang được xây dựng.
+              manalife hiện chỉ có giao diện sáng. Chế độ tối đang được xây
+              dựng.
             </p>
           </CardContent>
         </Card>

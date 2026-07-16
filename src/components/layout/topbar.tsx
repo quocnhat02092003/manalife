@@ -31,7 +31,7 @@ export function Topbar() {
         </IconButton>
 
         <span className="text-sm font-semibold text-ink lg:hidden">
-          {current?.label ?? "Luma"}
+          {current?.label ?? "manalife"}
         </span>
 
         <div className="relative ml-auto hidden w-full max-w-sm lg:block">
@@ -64,8 +64,13 @@ export function Topbar() {
           />
           <nav className="absolute inset-y-0 left-0 flex w-72 flex-col bg-surface">
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-[20px] font-bold text-brand-700">Luma</span>
-              <IconButton aria-label="Đóng menu" onClick={() => setMenuOpen(false)}>
+              <span className="text-[20px] font-bold text-brand-700">
+                manalife
+              </span>
+              <IconButton
+                aria-label="Đóng menu"
+                onClick={() => setMenuOpen(false)}
+              >
                 <X size={18} />
               </IconButton>
             </div>
@@ -92,7 +97,12 @@ export function Topbar() {
                                 : "font-medium text-ink-soft hover:bg-surface-muted",
                             )}
                           >
-                            <item.icon size={17} className={active ? "text-brand-600" : "text-ink-faint"} />
+                            <item.icon
+                              size={17}
+                              className={
+                                active ? "text-brand-600" : "text-ink-faint"
+                              }
+                            />
                             {item.label}
                           </Link>
                         </li>
