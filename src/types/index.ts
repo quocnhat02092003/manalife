@@ -208,7 +208,13 @@ export interface Attachment {
 // Tài liệu cá nhân
 // ---------------------------------------------------------------------------
 
-export type DocumentKind = "pdf" | "image" | "sheet" | "doc" | "other";
+export type DocumentKind =
+  | "pdf"
+  | "image"
+  | "video"
+  | "sheet"
+  | "doc"
+  | "other";
 
 export interface PersonalDocument {
   id: string;

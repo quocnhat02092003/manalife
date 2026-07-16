@@ -373,8 +373,11 @@ model PersonalDocument {
   id     String @id @default(cuid())
   userId String
   name   String
-  /// DocumentKind: pdf | image | sheet | doc | other
+  /// DocumentKind: pdf | image | video | sheet | doc | other
   kind   String @default("other")
+  /// MIME thật do server đọc từ magic bytes lúc upload. Chi tiết nội bộ —
+  /// dùng để trả đúng Content-Type khi tải file về, KHÔNG có trong response.
+  mimeType String?
   /// Kích thước byte.
   size     Int
   folderId String?
