@@ -30,8 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+# ...nhưng .env.example PHẢI được commit: README hướng dẫn `cp .env.example .env`.
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma — database cục bộ, không commit
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
+
+# prisma client sinh tự động — chạy `npm run db:generate` để tạo lại
+/src/generated/
